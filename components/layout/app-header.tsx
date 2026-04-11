@@ -43,7 +43,7 @@ export function AppHeader() {
               <span className="sr-only">Toggle menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-64 p-0">
+          <SheetContent side="left" className="w-56 p-0">
             <div className="bg-sidebar border-border flex h-full w-full flex-col border-r">
               {/* Mobile Header */}
               <div className="border-border flex items-center gap-3 border-b px-4 py-4">

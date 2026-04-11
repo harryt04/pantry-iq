@@ -29,7 +29,7 @@ export function AppSidebar() {
   }
 
   return (
-    <div className="bg-sidebar border-sidebar-border hidden h-screen w-64 flex-col border-r md:flex">
+    <div className="bg-sidebar border-sidebar-border hidden h-screen w-56 flex-col border-r md:flex">
       {/* Header */}
       <div className="border-sidebar-border flex items-center gap-3 border-b px-4 py-4">
         <ChefHat className="text-primary h-6 w-6 flex-shrink-0" />
