@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
 import posthog from 'posthog-js'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
