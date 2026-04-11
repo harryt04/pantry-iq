@@ -14,9 +14,13 @@ vi.mock('next/navigation', () => ({
 // Mock next/link
 vi.mock('next/link', () => {
   return {
-    default: ({ children, href }: { children: React.ReactNode; href: string }) => (
-      <a href={href}>{children}</a>
-    ),
+    default: ({
+      children,
+      href,
+    }: {
+      children: React.ReactNode
+      href: string
+    }) => <a href={href}>{children}</a>,
   }
 })
 
@@ -87,7 +91,9 @@ describe('SignupForm Component', () => {
 
       const nameInput = screen.getByLabelText('Name') as HTMLInputElement
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const confirmPasswordInput = screen.getByLabelText(
         'Confirm Password',
       ) as HTMLInputElement
@@ -96,13 +102,13 @@ describe('SignupForm Component', () => {
       fireEvent.change(nameInput, { target: { value: 'John Doe' } })
       fireEvent.change(emailInput, { target: { value: 'john@example.com' } })
       fireEvent.change(passwordInput, { target: { value: 'password123' } })
-      fireEvent.change(confirmPasswordInput, { target: { value: 'password456' } })
+      fireEvent.change(confirmPasswordInput, {
+        target: { value: 'password456' },
+      })
 
       fireEvent.click(submitButton)
 
-      expect(
-        screen.getByText('Passwords do not match'),
-      ).toBeInTheDocument()
+      expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
     })
 
     it('should not show password mismatch error when passwords match', async () => {
@@ -114,7 +120,9 @@ describe('SignupForm Component', () => {
 
       const nameInput = screen.getByLabelText('Name') as HTMLInputElement
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const confirmPasswordInput = screen.getByLabelText(
         'Confirm Password',
       ) as HTMLInputElement
@@ -123,7 +131,9 @@ describe('SignupForm Component', () => {
       fireEvent.change(nameInput, { target: { value: 'John Doe' } })
       fireEvent.change(emailInput, { target: { value: 'john@example.com' } })
       fireEvent.change(passwordInput, { target: { value: 'password123' } })
-      fireEvent.change(confirmPasswordInput, { target: { value: 'password123' } })
+      fireEvent.change(confirmPasswordInput, {
+        target: { value: 'password123' },
+      })
 
       fireEvent.click(submitButton)
 
@@ -132,7 +142,6 @@ describe('SignupForm Component', () => {
       })
     })
   })
-
 
   describe('Loading State', () => {
     it('should show loading state during form submission', async () => {
@@ -147,7 +156,9 @@ describe('SignupForm Component', () => {
 
       const nameInput = screen.getByLabelText('Name') as HTMLInputElement
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const confirmPasswordInput = screen.getByLabelText(
         'Confirm Password',
       ) as HTMLInputElement
@@ -181,7 +192,9 @@ describe('SignupForm Component', () => {
 
       const nameInput = screen.getByLabelText('Name') as HTMLInputElement
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const confirmPasswordInput = screen.getByLabelText(
         'Confirm Password',
       ) as HTMLInputElement
@@ -216,7 +229,9 @@ describe('SignupForm Component', () => {
 
       const nameInput = screen.getByLabelText('Name') as HTMLInputElement
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const confirmPasswordInput = screen.getByLabelText(
         'Confirm Password',
       ) as HTMLInputElement
@@ -250,7 +265,9 @@ describe('SignupForm Component', () => {
 
       const nameInput = screen.getByLabelText('Name') as HTMLInputElement
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const confirmPasswordInput = screen.getByLabelText(
         'Confirm Password',
       ) as HTMLInputElement
@@ -279,7 +296,9 @@ describe('SignupForm Component', () => {
 
       const nameInput = screen.getByLabelText('Name') as HTMLInputElement
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const confirmPasswordInput = screen.getByLabelText(
         'Confirm Password',
       ) as HTMLInputElement
@@ -296,12 +315,12 @@ describe('SignupForm Component', () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText('Email already taken. Please use a different email.'),
+          screen.getByText(
+            'Email already taken. Please use a different email.',
+          ),
         ).toBeInTheDocument()
       })
     })
-
-
 
     it('should display error from catch block for unexpected errors', async () => {
       ;(authClient.signUp.email as any).mockRejectedValueOnce(
@@ -312,7 +331,9 @@ describe('SignupForm Component', () => {
 
       const nameInput = screen.getByLabelText('Name') as HTMLInputElement
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const confirmPasswordInput = screen.getByLabelText(
         'Confirm Password',
       ) as HTMLInputElement
@@ -341,7 +362,9 @@ describe('SignupForm Component', () => {
 
       const nameInput = screen.getByLabelText('Name') as HTMLInputElement
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const confirmPasswordInput = screen.getByLabelText(
         'Confirm Password',
       ) as HTMLInputElement
@@ -373,7 +396,9 @@ describe('SignupForm Component', () => {
 
       const nameInput = screen.getByLabelText('Name') as HTMLInputElement
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const confirmPasswordInput = screen.getByLabelText(
         'Confirm Password',
       ) as HTMLInputElement
@@ -406,7 +431,9 @@ describe('SignupForm Component', () => {
 
       const nameInput = screen.getByLabelText('Name') as HTMLInputElement
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const confirmPasswordInput = screen.getByLabelText(
         'Confirm Password',
       ) as HTMLInputElement
@@ -435,7 +462,9 @@ describe('SignupForm Component', () => {
 
       const nameInput = screen.getByLabelText('Name') as HTMLInputElement
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const confirmPasswordInput = screen.getByLabelText(
         'Confirm Password',
       ) as HTMLInputElement
@@ -506,7 +535,9 @@ describe('LoginForm Component', () => {
       render(<LoginForm />)
 
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const submitButton = screen.getByRole('button', { name: 'Sign In' })
 
       fireEvent.change(emailInput, { target: { value: 'john@example.com' } })
@@ -532,7 +563,9 @@ describe('LoginForm Component', () => {
       render(<LoginForm />)
 
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const submitButton = screen.getByRole('button', { name: 'Sign In' })
 
       fireEvent.change(emailInput, { target: { value: 'john@example.com' } })
@@ -559,7 +592,9 @@ describe('LoginForm Component', () => {
       render(<LoginForm />)
 
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const submitButton = screen.getByRole('button', { name: 'Sign In' })
 
       fireEvent.change(emailInput, { target: { value: 'john@example.com' } })
@@ -583,7 +618,9 @@ describe('LoginForm Component', () => {
       render(<LoginForm />)
 
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const submitButton = screen.getByRole('button', { name: 'Sign In' })
 
       fireEvent.change(emailInput, { target: { value: 'john@example.com' } })
@@ -604,7 +641,9 @@ describe('LoginForm Component', () => {
       render(<LoginForm />)
 
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const submitButton = screen.getByRole('button', { name: 'Sign In' })
 
       fireEvent.change(emailInput, { target: { value: 'john@example.com' } })
@@ -625,7 +664,9 @@ describe('LoginForm Component', () => {
       render(<LoginForm />)
 
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const submitButton = screen.getByRole('button', { name: 'Sign In' })
 
       fireEvent.change(emailInput, { target: { value: 'john@example.com' } })
@@ -646,7 +687,9 @@ describe('LoginForm Component', () => {
       render(<LoginForm />)
 
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const submitButton = screen.getByRole('button', { name: 'Sign In' })
 
       fireEvent.change(emailInput, { target: { value: 'john@example.com' } })
@@ -659,8 +702,6 @@ describe('LoginForm Component', () => {
         expect(alert).toHaveTextContent('Test error')
       })
     })
-
-
   })
 
   describe('Successful Login', () => {
@@ -672,7 +713,9 @@ describe('LoginForm Component', () => {
       render(<LoginForm />)
 
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const submitButton = screen.getByRole('button', { name: 'Sign In' })
 
       fireEvent.change(emailInput, { target: { value: 'john@example.com' } })
@@ -696,7 +739,9 @@ describe('LoginForm Component', () => {
       render(<LoginForm />)
 
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const submitButton = screen.getByRole('button', { name: 'Sign In' })
 
       fireEvent.change(emailInput, { target: { value: 'john@example.com' } })
@@ -717,7 +762,9 @@ describe('LoginForm Component', () => {
       render(<LoginForm />)
 
       const emailInput = screen.getByLabelText('Email') as HTMLInputElement
-      const passwordInput = screen.getByLabelText('Password') as HTMLInputElement
+      const passwordInput = screen.getByLabelText(
+        'Password',
+      ) as HTMLInputElement
       const submitButton = screen.getByRole('button', { name: 'Sign In' })
 
       fireEvent.change(emailInput, { target: { value: 'john@example.com' } })
