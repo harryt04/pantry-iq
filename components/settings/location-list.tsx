@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Edit2, Trash2, Plus, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -105,8 +106,9 @@ export function LocationList({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Your Locations</CardTitle>
-          <Button onClick={onAddNew} disabled={isLoading}>
-            + Add Location
+          <Button onClick={onAddNew} disabled={isLoading} size="sm">
+            <Plus className="mr-2 h-4 w-4" />
+            Add Location
           </Button>
         </CardHeader>
         <CardContent>
@@ -156,7 +158,9 @@ export function LocationList({
                       size="sm"
                       onClick={() => onEdit(location)}
                       disabled={loadingId === location.id}
+                      className="gap-1.5"
                     >
+                      <Edit2 className="h-3.5 w-3.5" />
                       Edit
                     </Button>
                     <Button
@@ -164,8 +168,9 @@ export function LocationList({
                       size="sm"
                       onClick={() => handleDelete(location.id)}
                       disabled={loadingId === location.id}
-                      className="text-red-600 hover:text-red-700"
+                      className="gap-1.5 text-red-600 hover:text-red-700"
                     >
+                      <Trash2 className="h-3.5 w-3.5" />
                       Delete
                     </Button>
                   </div>
@@ -177,7 +182,9 @@ export function LocationList({
                   size="sm"
                   onClick={handleRefresh}
                   disabled={isLoading}
+                  className="gap-1.5"
                 >
+                  <RotateCcw className="h-3.5 w-3.5" />
                   Refresh
                 </Button>
               </div>

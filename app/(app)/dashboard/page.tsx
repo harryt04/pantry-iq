@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Building2, ShoppingCart, Upload as UploadIcon } from 'lucide-react'
 import { useSession } from '@/lib/auth-client'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { ImportStatusCard } from '@/components/dashboard/import-status-card'
@@ -117,9 +118,21 @@ export default function DashboardPage() {
   }
 
   const stats = [
-    { label: 'Total Locations', value: dashboardData.totalLocations },
-    { label: 'Total Transactions', value: dashboardData.totalTransactions },
-    { label: 'Recent Uploads', value: dashboardData.recentCsvUploads.length },
+    {
+      label: 'Total Locations',
+      value: dashboardData.totalLocations,
+      icon: Building2,
+    },
+    {
+      label: 'Total Transactions',
+      value: dashboardData.totalTransactions,
+      icon: ShoppingCart,
+    },
+    {
+      label: 'Recent Uploads',
+      value: dashboardData.recentCsvUploads.length,
+      icon: UploadIcon,
+    },
   ]
 
   // Build POS connections from locations
@@ -143,18 +156,24 @@ export default function DashboardPage() {
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-3">
-        {stats.map((stat) => (
-          <Card key={stat.label}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">
-                {stat.label}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-            </CardContent>
-          </Card>
-        ))}
+        {stats.map((stat) => {
+          const Icon = stat.icon
+          return (
+            <Card key={stat.label}>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium">
+                    {stat.label}
+                  </CardTitle>
+                  <Icon className="text-muted-foreground h-4 w-4" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stat.value}</div>
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
       {/* Main Content */}

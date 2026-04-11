@@ -2,7 +2,12 @@
 
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { ArrowRight } from 'lucide-react'
+import {
+  ArrowRight,
+  Upload as UploadIcon,
+  MessageSquare,
+  Settings as SettingsIcon,
+} from 'lucide-react'
 
 interface QuickActionsCardProps {
   hasLocations: boolean
@@ -14,18 +19,20 @@ export function QuickActionsCard({ hasLocations }: QuickActionsCardProps) {
       label: 'Import Data',
       description: 'Upload CSV or connect POS',
       href: hasLocations ? '/import' : '/settings',
-      icon: '📤',
+      icon: UploadIcon,
     },
     {
       label: 'Start Conversation',
       description: 'Ask AI about your data',
       href: '/conversations',
+      icon: MessageSquare,
       disabled: !hasLocations,
     },
     {
       label: 'Manage Settings',
       description: 'Add locations and account',
       href: '/settings',
+      icon: SettingsIcon,
     },
   ]
 
@@ -37,27 +44,35 @@ export function QuickActionsCard({ hasLocations }: QuickActionsCardProps) {
       <CardContent>
         <div className="flex flex-col gap-3">
           {actions.map((action) => {
+            const Icon = action.icon
             const content = (
               <div className="flex h-full flex-col justify-between">
-                <div>
-                  <p
-                    className={`font-semibold ${
-                      action.disabled
-                        ? 'text-muted-foreground'
-                        : 'text-foreground'
+                <div className="flex items-start gap-3">
+                  <Icon
+                    className={`mt-0.5 h-4 w-4 shrink-0 ${
+                      action.disabled ? 'text-muted-foreground' : 'text-primary'
                     }`}
-                  >
-                    {action.label}
-                  </p>
-                  <p
-                    className={`mt-1 text-sm ${
-                      action.disabled
-                        ? 'text-muted-foreground/60'
-                        : 'text-muted-foreground'
-                    }`}
-                  >
-                    {action.description}
-                  </p>
+                  />
+                  <div className="flex-1">
+                    <p
+                      className={`font-semibold ${
+                        action.disabled
+                          ? 'text-muted-foreground'
+                          : 'text-foreground'
+                      }`}
+                    >
+                      {action.label}
+                    </p>
+                    <p
+                      className={`mt-1 text-sm ${
+                        action.disabled
+                          ? 'text-muted-foreground/60'
+                          : 'text-muted-foreground'
+                      }`}
+                    >
+                      {action.description}
+                    </p>
+                  </div>
                 </div>
                 <div className="flex items-center justify-between pt-3">
                   {action.disabled && (

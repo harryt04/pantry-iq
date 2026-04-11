@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Button } from '@/components/ui/button'
+import { authClient } from '@/lib/auth-client'
 import {
   ChefHat,
   LayoutDashboard,
@@ -11,6 +11,16 @@ import {
   Settings,
   LogOut,
 } from 'lucide-react'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from '@/components/ui/sidebar'
+import { Button } from '@/components/ui/button'
 
 export function AppSidebar() {
   const pathname = usePathname()
@@ -22,42 +32,48 @@ export function AppSidebar() {
     { href: '/settings', icon: Settings, label: 'Settings' },
   ]
 
+  const handleLogout = async () => {
+    await authClient.signOut()
+  }
+
   return (
-    <div className="border-border bg-background flex h-screen flex-col border-r">
-      {/* Logo */}
-      <div className="border-border flex items-center gap-2 border-b p-4">
-        <ChefHat className="text-primary h-6 w-6" />
-        <span className="font-bold">PantryIQ</span>
-      </div>
+    <Sidebar>
+      <SidebarHeader>
+        <div className="flex items-center gap-2">
+          <ChefHat className="text-primary h-6 w-6" />
+          <span className="font-bold">PantryIQ</span>
+        </div>
+      </SidebarHeader>
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-2 p-4">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted'
-              }`}
-            >
-              <item.icon className="h-5 w-5" />
-              <span>{item.label}</span>
-            </Link>
-          )
-        })}
-      </nav>
+      <SidebarContent>
+        <SidebarMenu>
+          {navItems.map((item) => {
+            const isActive = pathname === item.href
+            const Icon = item.icon
+            return (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton asChild isActive={isActive}>
+                  <Link href={item.href} className="flex items-center gap-2">
+                    <Icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          })}
+        </SidebarMenu>
+      </SidebarContent>
 
-      {/* Logout */}
-      <div className="border-border border-t p-4">
-        <Button variant="outline" className="w-full justify-start gap-2">
+      <SidebarFooter>
+        <Button
+          variant="outline"
+          className="w-full justify-start gap-2"
+          onClick={handleLogout}
+        >
           <LogOut className="h-4 w-4" />
           Logout
         </Button>
-      </div>
-    </div>
+      </SidebarFooter>
+    </Sidebar>
   )
 }

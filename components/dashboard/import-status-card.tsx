@@ -2,6 +2,14 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import {
+  File,
+  Check,
+  Clock,
+  AlertCircle,
+  Loader2,
+  Square as SquareIcon,
+} from 'lucide-react'
 
 interface CsvUpload {
   id: string
@@ -45,7 +53,25 @@ function StatusBadge({ status }: { status: keyof typeof statusBadgeConfig }) {
   if (!config) {
     return <Badge variant="outline">{status}</Badge>
   }
-  return <Badge className={config.className}>{config.label}</Badge>
+
+  // Get icon based on status
+  let StatusIcon = Clock
+  if (status === 'complete' || status === 'synced') {
+    StatusIcon = Check
+  } else if (status === 'error') {
+    StatusIcon = AlertCircle
+  } else if (status === 'importing' || status === 'syncing') {
+    StatusIcon = Loader2
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      <StatusIcon
+        className={`h-3.5 w-3.5 ${status === 'importing' || status === 'syncing' ? 'animate-spin' : ''}`}
+      />
+      <Badge className={config.className}>{config.label}</Badge>
+    </div>
+  )
 }
 
 export function ImportStatusCard({
@@ -61,7 +87,10 @@ export function ImportStatusCard({
       <CardContent className="space-y-6">
         {/* CSV Uploads Section */}
         <div>
-          <h3 className="mb-3 font-semibold">Recent CSV Uploads</h3>
+          <h3 className="mb-3 flex items-center gap-2 font-semibold">
+            <File className="h-4 w-4" />
+            Recent CSV Uploads
+          </h3>
           {csvUploads.length === 0 ? (
             <p className="text-muted-foreground text-sm">
               No CSV uploads yet.{' '}
@@ -77,7 +106,10 @@ export function ImportStatusCard({
                   className="border-input flex items-center justify-between rounded border p-3"
                 >
                   <div className="flex-1">
-                    <p className="text-sm font-medium">{upload.filename}</p>
+                    <div className="flex items-center gap-2">
+                      <File className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+                      <p className="text-sm font-medium">{upload.filename}</p>
+                    </div>
                     <p className="text-muted-foreground text-xs">
                       {upload.locationName} •{' '}
                       {new Date(upload.uploadedAt).toLocaleDateString()}
@@ -99,7 +131,10 @@ export function ImportStatusCard({
 
         {/* POS Connections Section */}
         <div className="border-t pt-6">
-          <h3 className="mb-3 font-semibold">Connected POS Accounts</h3>
+          <h3 className="mb-3 flex items-center gap-2 font-semibold">
+            <SquareIcon className="h-4 w-4" />
+            Connected POS Accounts
+          </h3>
           {posConnections.length === 0 ? (
             <p className="text-muted-foreground text-sm">
               No POS connections yet.{' '}
@@ -115,9 +150,12 @@ export function ImportStatusCard({
                   className="border-input flex items-center justify-between rounded border p-3"
                 >
                   <div className="flex-1">
-                    <p className="text-sm font-medium">
-                      {connection.locationName} - Square
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <SquareIcon className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+                      <p className="text-sm font-medium">
+                        {connection.locationName} - Square
+                      </p>
+                    </div>
                     {connection.lastSync && (
                       <p className="text-muted-foreground text-xs">
                         Last synced:{' '}

@@ -1,14 +1,18 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Settings } from 'lucide-react'
 
 export function AppHeader() {
   return (
     <div className="border-border bg-background flex items-center justify-between border-b px-6 py-4">
-      <div>
-        <p className="text-muted-foreground text-sm">Location</p>
-        <p className="font-medium">Main Kitchen</p>
+      <div className="flex items-center gap-4">
+        <SidebarTrigger className="md:hidden" />
+        <div>
+          <p className="text-muted-foreground text-sm">Location</p>
+          <p className="font-medium">Main Kitchen</p>
+        </div>
       </div>
       <div className="flex items-center gap-4">
         <div className="text-right">
