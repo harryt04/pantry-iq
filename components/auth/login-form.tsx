@@ -1,0 +1,119 @@
+'use client'
+
+import { useState, FormEvent } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { authClient } from '@/lib/auth-client'
+
+export function LoginForm() {
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setError(null)
+    setIsLoading(true)
+
+    try {
+      const result = await authClient.signIn.email({
+        email,
+        password,
+      })
+
+      if (result.error) {
+        setError(result.error.message || 'Failed to sign in')
+      } else {
+        // Sign in successful, redirect to dashboard
+        router.push('/dashboard')
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'An unexpected error occurred'
+      setError(errorMessage)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Welcome Back</CardTitle>
+        <CardDescription>Sign in to your PantryIQ account</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div
+              className="rounded-md bg-destructive/10 p-3 text-sm text-destructive"
+              role="alert"
+            >
+              {error}
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={isLoading}
+            />
+          </div>
+
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? 'Signing in...' : 'Sign In'}
+          </Button>
+        </form>
+
+        <div className="mt-4 text-center text-sm">
+          <span className="text-muted-foreground">
+            Don&apos;t have an account?{' '}
+          </span>
+          <Link href="/signup" className="text-primary hover:underline">
+            Sign up
+          </Link>
+        </div>
+
+        <div className="mt-2 text-center text-sm">
+          <Link
+            href="#"
+            className="text-muted-foreground hover:text-primary hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
