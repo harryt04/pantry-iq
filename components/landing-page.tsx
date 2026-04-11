@@ -267,8 +267,8 @@ export function LandingPage() {
               </div>
               <h3 className="mb-2 text-xl font-semibold">Connect Your POS</h3>
               <p className="text-muted-foreground">
-                Import transaction data from Square, Cisco, and more. We handle
-                the integration.
+                Connect Square POS directly or upload CSV files. We handle the
+                normalization and import.
               </p>
             </div>
             <div className="text-center">
