@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { NextResponse } from 'next/server'
 import {
   ApiError,
   logErrorSafely,
@@ -545,12 +544,18 @@ describe('cn() - Tailwind class merge', () => {
     })
 
     it('should handle null input', () => {
-      const result = cn(null as any, 'px-2')
+      const result = cn(null as Record<string, unknown> | null, 'px-2')
       expect(result).toContain('px-2')
     })
 
     it('should handle mixed valid and invalid inputs', () => {
-      const result = cn('px-2', undefined, 'py-1', null as any, 'bg-white')
+      const result = cn(
+        'px-2',
+        undefined,
+        'py-1',
+        null as Record<string, unknown> | null,
+        'bg-white',
+      )
       expect(result).toContain('px-2')
       expect(result).toContain('py-1')
       expect(result).toContain('bg-white')

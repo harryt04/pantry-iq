@@ -16,20 +16,14 @@
  * Exercise real parser, mapper, and normalizer.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { parseCSV } from '@/lib/csv/parser'
 import {
   suggestMappings,
   validateMapping,
   applyMapping,
-  type FieldMapping,
 } from '@/lib/csv/field-mapper'
-import {
-  GENERATORS,
-  serializeCSV,
-  type GeneratorOptions,
-} from '@/scripts/generate-test-csv-faker'
-import type { eq } from 'drizzle-orm'
+import { GENERATORS, serializeCSV } from '@/scripts/generate-test-csv-faker'
 
 // ============================================================================
 // Mock Database Layer
@@ -138,7 +132,7 @@ class MockDatabase {
     // Here we simulate it
     const uploadsToDelete: string[] = []
     for (const [uploadId, upload] of this.uploads) {
-      if ((upload as any).locationId === locationId) {
+      if ((upload as Record<string, unknown>).locationId === locationId) {
         uploadsToDelete.push(uploadId)
       }
     }
@@ -507,7 +501,6 @@ describe('CSV Import Integration (Full Pipeline with Mocked DB)', () => {
       await importCSVToDB(buffer1, locationId, 'upload-loc1', db)
       await importCSVToDB(buffer2, locationId2, 'upload-loc2', db)
 
-      const txsBefore1 = db.queryTransactionsByLocation(locationId)
       const txsBefore2 = db.queryTransactionsByLocation(locationId2)
 
       // Delete location 1
@@ -671,7 +664,7 @@ describe('CSV Import Integration (Full Pipeline with Mocked DB)', () => {
       const buffer = generateBuffer('square-pos', 5000)
       const uploadId = 'upload-large-integrity'
 
-      const result = await importCSVToDB(buffer, locationId, uploadId, db)
+      await importCSVToDB(buffer, locationId, uploadId, db)
 
       const txs = db.queryTransactionsByLocation(locationId)
 
@@ -782,10 +775,10 @@ describe('CSV Import Integration (Full Pipeline with Mocked DB)', () => {
 
       // No cross-contamination
       for (const tx of txsLoc1) {
-        expect((tx as any).locationId).toBe(locationId)
+        expect((tx as Record<string, unknown>).locationId).toBe(locationId)
       }
       for (const tx of txsLoc2) {
-        expect((tx as any).locationId).toBe(locationId2)
+        expect((tx as Record<string, unknown>).locationId).toBe(locationId2)
       }
     })
 

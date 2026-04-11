@@ -11,18 +11,7 @@ import {
   type Weather,
   type WaitlistSignup,
 } from '@/lib/zero/schema'
-import {
-  getLocationPermissionFilter,
-  getConversationPermissionFilter,
-  getMessagePermissionFilter,
-  getCsvUploadPermissionFilter,
-  getTransactionPermissionFilter,
-  getPosConnectionPermissionFilter,
-  canAccessLocation,
-  canAccessConversation,
-  canAccessMessage,
-  type PermissionContext,
-} from '@/lib/zero/permissions'
+import { type PermissionContext } from '@/lib/zero/permissions'
 
 describe('Zero Schema Definition', () => {
   describe('Table Structure', () => {

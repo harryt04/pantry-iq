@@ -184,7 +184,8 @@ describe('hashLocationId()', () => {
 
       // Fallback: returns first 16 chars of location ID
       expect(hash).toBe(locationId.slice(0, 16))
-      ;(globalThis.crypto.subtle.digest as any) = originalDigest
+      ;(globalThis.crypto.subtle.digest as SubtleCrypto['digest']) =
+        originalDigest
     })
 
     it('should return predictable fallback hash', async () => {
@@ -199,7 +200,8 @@ describe('hashLocationId()', () => {
       expect(hash).toBe(id.slice(0, 16))
 
       const originalDigest = globalThis.crypto.subtle.digest
-      ;(globalThis.crypto.subtle.digest as any) = originalDigest
+      ;(globalThis.crypto.subtle.digest as SubtleCrypto['digest']) =
+        originalDigest
     })
 
     it('should not throw on crypto error', async () => {
@@ -210,7 +212,8 @@ describe('hashLocationId()', () => {
       await expect(hashLocationId('location')).resolves.toBeDefined()
 
       const originalDigest = globalThis.crypto.subtle.digest
-      ;(globalThis.crypto.subtle.digest as any) = originalDigest
+      ;(globalThis.crypto.subtle.digest as SubtleCrypto['digest']) =
+        originalDigest
     })
   })
 
@@ -257,7 +260,7 @@ describe('captureAnalyticsEvent()', () => {
 
   beforeEach(() => {
     consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {})
-    delete (process.env as any).NODE_ENV
+    delete (process.env as NodeJS.ProcessEnv).NODE_ENV
   })
 
   afterEach(() => {
@@ -290,7 +293,7 @@ describe('captureAnalyticsEvent()', () => {
     })
 
     it('should not capture event when NODE_ENV is undefined', () => {
-      delete (process.env as any).NODE_ENV
+      delete (process.env as NodeJS.ProcessEnv).NODE_ENV
 
       captureAnalyticsEvent('test-event', { property: 'value' })
 
@@ -302,7 +305,7 @@ describe('captureAnalyticsEvent()', () => {
     it('should not capture event on server-side (no window)', () => {
       process.env.NODE_ENV = 'production'
       const windowSpy = vi.spyOn(globalThis, 'window', 'get')
-      windowSpy.mockReturnValueOnce(undefined as any)
+      windowSpy.mockReturnValueOnce(undefined as undefined)
 
       captureAnalyticsEvent('test-event', { property: 'value' })
 
@@ -421,46 +424,46 @@ describe('captureAnalyticsEvent()', () => {
 describe('PostHog Server Integration', () => {
   describe('getPostHogClient() function export', () => {
     it('should export getPostHogClient as a function', async () => {
-      const module = await import('@/lib/posthog-server')
-      expect(typeof module.getPostHogClient).toBe('function')
+      const moduleExports = await import('@/lib/posthog-server')
+      expect(typeof moduleExports.getPostHogClient).toBe('function')
     })
 
     it('should export shutdownPostHog as a function', async () => {
-      const module = await import('@/lib/posthog-server')
-      expect(typeof module.shutdownPostHog).toBe('function')
+      const moduleExports = await import('@/lib/posthog-server')
+      expect(typeof moduleExports.shutdownPostHog).toBe('function')
     })
 
     it('should have both exports from posthog-server module', async () => {
-      const module = await import('@/lib/posthog-server')
-      expect(module).toHaveProperty('getPostHogClient')
-      expect(module).toHaveProperty('shutdownPostHog')
+      const moduleExports = await import('@/lib/posthog-server')
+      expect(moduleExports).toHaveProperty('getPostHogClient')
+      expect(moduleExports).toHaveProperty('shutdownPostHog')
     })
   })
 
   describe('shutdownPostHog() function export', () => {
     it('should return a Promise-like object from shutdownPostHog', async () => {
-      const module = await import('@/lib/posthog-server')
-      const result = module.shutdownPostHog()
+      const moduleExports = await import('@/lib/posthog-server')
+      const result = moduleExports.shutdownPostHog()
 
       expect(typeof result).toBe('object')
       expect(typeof result.then).toBe('function')
     })
 
     it('should be an async function', async () => {
-      const module = await import('@/lib/posthog-server')
+      const moduleExports = await import('@/lib/posthog-server')
 
-      const result = module.shutdownPostHog()
+      const result = moduleExports.shutdownPostHog()
 
       // Should be awaitable (even if it resolves to undefined)
       await expect(Promise.resolve(result)).resolves.toBeUndefined()
     })
 
     it('should handle being called multiple times safely', async () => {
-      const module = await import('@/lib/posthog-server')
+      const moduleExports = await import('@/lib/posthog-server')
 
-      const promise1 = module.shutdownPostHog()
-      const promise2 = module.shutdownPostHog()
-      const promise3 = module.shutdownPostHog()
+      const promise1 = moduleExports.shutdownPostHog()
+      const promise2 = moduleExports.shutdownPostHog()
+      const promise3 = moduleExports.shutdownPostHog()
 
       expect(promise1).toBeInstanceOf(Promise)
       expect(promise2).toBeInstanceOf(Promise)
@@ -474,23 +477,23 @@ describe('PostHog Server Integration', () => {
 
   describe('Singleton Pattern Verification', () => {
     it('should implement singleton pattern for getPostHogClient', async () => {
-      const module = await import('@/lib/posthog-server')
+      const moduleExports = await import('@/lib/posthog-server')
 
-      const getter = module.getPostHogClient
+      const getter = moduleExports.getPostHogClient
 
       expect(getter).toBeDefined()
       expect(typeof getter).toBe('function')
 
       expect(() => {
-        module.getPostHogClient.toString()
+        moduleExports.getPostHogClient.toString()
       }).not.toThrow()
     })
 
     it('should have posthog-server exports exposed', async () => {
-      const module = await import('@/lib/posthog-server')
+      const moduleExports = await import('@/lib/posthog-server')
 
-      expect(Object.keys(module)).toContain('getPostHogClient')
-      expect(Object.keys(module)).toContain('shutdownPostHog')
+      expect(Object.keys(moduleExports)).toContain('getPostHogClient')
+      expect(Object.keys(moduleExports)).toContain('shutdownPostHog')
     })
   })
 
@@ -502,35 +505,35 @@ describe('PostHog Server Integration', () => {
     })
 
     it('should not throw when accessing exported functions', async () => {
-      const module = await import('@/lib/posthog-server')
+      const moduleExports = await import('@/lib/posthog-server')
 
       expect(() => {
-        void module.getPostHogClient
-        void module.shutdownPostHog
+        void moduleExports.getPostHogClient
+        void moduleExports.shutdownPostHog
       }).not.toThrow()
     })
 
     it('shutdownPostHog should return promise-like in all cases', async () => {
-      const module = await import('@/lib/posthog-server')
+      const moduleExports = await import('@/lib/posthog-server')
 
-      const result = module.shutdownPostHog()
+      const result = moduleExports.shutdownPostHog()
 
       expect(result).toHaveProperty('then')
       expect(typeof result.then).toBe('function')
     })
 
     it('should handle environment variables gracefully', async () => {
-      const module = await import('@/lib/posthog-server')
+      const moduleExports = await import('@/lib/posthog-server')
 
-      expect(typeof module.getPostHogClient).toBe('function')
-      expect(typeof module.shutdownPostHog).toBe('function')
+      expect(typeof moduleExports.getPostHogClient).toBe('function')
+      expect(typeof moduleExports.shutdownPostHog).toBe('function')
     })
   })
 
   describe('Module Structure', () => {
     it('should only export getPostHogClient and shutdownPostHog', async () => {
-      const module = await import('@/lib/posthog-server')
-      const exports = Object.keys(module).filter(
+      const moduleExports = await import('@/lib/posthog-server')
+      const exports = Object.keys(moduleExports).filter(
         (key) => !key.startsWith('__') && key !== 'default',
       )
 
@@ -539,42 +542,42 @@ describe('PostHog Server Integration', () => {
     })
 
     it('should not expose internal implementation details', async () => {
-      const module = await import('@/lib/posthog-server')
+      const moduleExports = await import('@/lib/posthog-server')
 
-      expect(module).not.toHaveProperty('posthogClient')
+      expect(moduleExports).not.toHaveProperty('posthogClient')
     })
 
     it('should be a valid ES module', async () => {
-      const module = await import('@/lib/posthog-server')
+      const moduleExports = await import('@/lib/posthog-server')
 
-      expect(typeof module).toBe('object')
-      expect(module).not.toBeNull()
+      expect(typeof moduleExports).toBe('object')
+      expect(moduleExports).not.toBeNull()
     })
   })
 
   describe('Type Correctness', () => {
     it('getPostHogClient should be a function', async () => {
-      const module = await import('@/lib/posthog-server')
-      expect(typeof module.getPostHogClient).toBe('function')
+      const moduleExports = await import('@/lib/posthog-server')
+      expect(typeof moduleExports.getPostHogClient).toBe('function')
     })
 
     it('shutdownPostHog should be a function', async () => {
-      const module = await import('@/lib/posthog-server')
-      expect(typeof module.shutdownPostHog).toBe('function')
+      const moduleExports = await import('@/lib/posthog-server')
+      expect(typeof moduleExports.shutdownPostHog).toBe('function')
     })
 
     it('shutdownPostHog() should return Promise-like', async () => {
-      const module = await import('@/lib/posthog-server')
-      const result = module.shutdownPostHog()
+      const moduleExports = await import('@/lib/posthog-server')
+      const result = moduleExports.shutdownPostHog()
 
       expect(result).toBeInstanceOf(Promise)
     })
 
     it('getPostHogClient should be callable', async () => {
-      const module = await import('@/lib/posthog-server')
+      const moduleExports = await import('@/lib/posthog-server')
 
       expect(() => {
-        const fn = module.getPostHogClient
+        const fn = moduleExports.getPostHogClient
         expect(typeof fn).toBe('function')
       }).not.toThrow()
     })
@@ -582,28 +585,28 @@ describe('PostHog Server Integration', () => {
 
   describe('Integration Pattern Compliance', () => {
     it('should follow singleton initialization pattern', async () => {
-      const module = await import('@/lib/posthog-server')
+      const moduleExports = await import('@/lib/posthog-server')
 
-      expect(typeof module.getPostHogClient).toBe('function')
-      expect(typeof module.shutdownPostHog).toBe('function')
+      expect(typeof moduleExports.getPostHogClient).toBe('function')
+      expect(typeof moduleExports.shutdownPostHog).toBe('function')
     })
 
     it('should support lifecycle: getClient -> shutdown', async () => {
-      const module = await import('@/lib/posthog-server')
+      const moduleExports = await import('@/lib/posthog-server')
 
-      const hasGetClient = typeof module.getPostHogClient === 'function'
-      const hasShutdown = typeof module.shutdownPostHog === 'function'
+      const hasGetClient = typeof moduleExports.getPostHogClient === 'function'
+      const hasShutdown = typeof moduleExports.shutdownPostHog === 'function'
 
       expect(hasGetClient && hasShutdown).toBe(true)
     })
 
     it('should handle concurrent calls safely', async () => {
-      const module = await import('@/lib/posthog-server')
+      const moduleExports = await import('@/lib/posthog-server')
 
       const calls = [
-        module.shutdownPostHog(),
-        module.shutdownPostHog(),
-        module.shutdownPostHog(),
+        moduleExports.shutdownPostHog(),
+        moduleExports.shutdownPostHog(),
+        moduleExports.shutdownPostHog(),
       ]
 
       expect(calls).toHaveLength(3)
@@ -611,9 +614,9 @@ describe('PostHog Server Integration', () => {
     })
 
     it('should implement proper module exports for ES modules', async () => {
-      const module = await import('@/lib/posthog-server')
+      const moduleExports = await import('@/lib/posthog-server')
 
-      const { getPostHogClient, shutdownPostHog } = module
+      const { getPostHogClient, shutdownPostHog } = moduleExports
 
       expect(typeof getPostHogClient).toBe('function')
       expect(typeof shutdownPostHog).toBe('function')

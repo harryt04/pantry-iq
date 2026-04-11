@@ -61,7 +61,7 @@ vi.mock('@/lib/posthog-server', () => ({
   })),
 }))
 
-global.fetch = vi.fn() as any
+global.fetch = vi.fn() as unknown
 
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
@@ -102,14 +102,14 @@ function mockSession(userId: string = 'user-123') {
       ipAddress: '127.0.0.1',
       userAgent: 'test-agent',
     },
-  } as any)
+  } as unknown)
 }
 
 function mockNoSession() {
   vi.mocked(auth.api.getSession).mockResolvedValueOnce(null)
 }
 
-function createDbChain(result: any[] = []) {
+function createDbChain(result: unknown[] = []) {
   const chain = {
     from: vi.fn(function () {
       return chain
@@ -219,7 +219,7 @@ describe('Miscellaneous Routes (Task 3D)', () => {
     })
 
     it('should accept valid email: test@example.com', async () => {
-      vi.mocked(global.fetch as any).mockResolvedValueOnce({ ok: true })
+      vi.mocked(global.fetch as unknown).mockResolvedValueOnce({ ok: true })
       const route = await import('@/app/api/subscribe/route')
       const res = await route.POST(
         createRequest('http://localhost:3000/api/subscribe', 'POST', {
@@ -233,7 +233,7 @@ describe('Miscellaneous Routes (Task 3D)', () => {
     })
 
     it('should accept valid email: user+tag@domain.co.uk', async () => {
-      vi.mocked(global.fetch as any).mockResolvedValueOnce({ ok: true })
+      vi.mocked(global.fetch as unknown).mockResolvedValueOnce({ ok: true })
       const route = await import('@/app/api/subscribe/route')
       const res = await route.POST(
         createRequest('http://localhost:3000/api/subscribe', 'POST', {
@@ -247,7 +247,7 @@ describe('Miscellaneous Routes (Task 3D)', () => {
     })
 
     it('should accept valid email: name.surname@company.org', async () => {
-      vi.mocked(global.fetch as any).mockResolvedValueOnce({ ok: true })
+      vi.mocked(global.fetch as unknown).mockResolvedValueOnce({ ok: true })
       const route = await import('@/app/api/subscribe/route')
       const res = await route.POST(
         createRequest('http://localhost:3000/api/subscribe', 'POST', {
@@ -261,7 +261,7 @@ describe('Miscellaneous Routes (Task 3D)', () => {
     })
 
     it('should handle external API failure gracefully', async () => {
-      vi.mocked(global.fetch as any).mockRejectedValueOnce(
+      vi.mocked(global.fetch as unknown).mockRejectedValueOnce(
         new Error('Network error'),
       )
       const route = await import('@/app/api/subscribe/route')
@@ -296,7 +296,7 @@ describe('Miscellaneous Routes (Task 3D)', () => {
 
     it('should reject missing date parameter', async () => {
       const chain = createDbChain([{ id: 'loc-123' }])
-      vi.mocked(db.select).mockReturnValue(chain as any)
+      vi.mocked(db.select).mockReturnValue(chain as unknown)
       const route = await import('@/app/api/weather/[location]/route')
       const res = await route.GET(
         createRequest('http://localhost:3000/api/weather/loc-123'),
@@ -312,7 +312,7 @@ describe('Miscellaneous Routes (Task 3D)', () => {
 
     it('should reject invalid date format', async () => {
       const chain = createDbChain([{ id: 'loc-123' }])
-      vi.mocked(db.select).mockReturnValue(chain as any)
+      vi.mocked(db.select).mockReturnValue(chain as unknown)
       const route = await import('@/app/api/weather/[location]/route')
       const res = await route.GET(
         createRequest('http://localhost:3000/api/weather/loc-123?date=bad'),
@@ -328,7 +328,7 @@ describe('Miscellaneous Routes (Task 3D)', () => {
 
     it('should return 404 when location not found', async () => {
       const chain = createDbChain([])
-      vi.mocked(db.select).mockReturnValue(chain as any)
+      vi.mocked(db.select).mockReturnValue(chain as unknown)
       const route = await import('@/app/api/weather/[location]/route')
       const res = await route.GET(
         createRequest('http://localhost:3000/api/weather/loc-999'),
@@ -344,8 +344,10 @@ describe('Miscellaneous Routes (Task 3D)', () => {
 
     it('should return historical weather for valid date', async () => {
       const chain = createDbChain([{ id: 'loc-123' }])
-      vi.mocked(db.select).mockReturnValue(chain as any)
-      vi.mocked(getHistoricalWeather).mockResolvedValueOnce({ temp: 72 } as any)
+      vi.mocked(db.select).mockReturnValue(chain as unknown)
+      vi.mocked(getHistoricalWeather).mockResolvedValueOnce({
+        temp: 72,
+      } as unknown)
       const route = await import('@/app/api/weather/[location]/route')
       const res = await route.GET(
         createRequest(
@@ -364,8 +366,8 @@ describe('Miscellaneous Routes (Task 3D)', () => {
 
     it('should return forecast data when requested', async () => {
       const chain = createDbChain([{ id: 'loc-123' }])
-      vi.mocked(db.select).mockReturnValue(chain as any)
-      vi.mocked(getForecast).mockResolvedValueOnce([{ temp: 72 }] as any)
+      vi.mocked(db.select).mockReturnValue(chain as unknown)
+      vi.mocked(getForecast).mockResolvedValueOnce([{ temp: 72 }] as unknown)
       const route = await import('@/app/api/weather/[location]/route')
       const res = await route.GET(
         createRequest(
@@ -384,7 +386,7 @@ describe('Miscellaneous Routes (Task 3D)', () => {
 
     it('should return 500 on API failure', async () => {
       const chain = createDbChain([{ id: 'loc-123' }])
-      vi.mocked(db.select).mockReturnValue(chain as any)
+      vi.mocked(db.select).mockReturnValue(chain as unknown)
       vi.mocked(getHistoricalWeather).mockRejectedValueOnce(
         new Error('API Error'),
       )
@@ -455,7 +457,9 @@ describe('Miscellaneous Routes (Task 3D)', () => {
 
     it('should return list of places', async () => {
       const places = [{ id: 'p1', name: 'Food Bank' }]
-      vi.mocked(getDonationOpportunities).mockResolvedValueOnce(places as any)
+      vi.mocked(getDonationOpportunities).mockResolvedValueOnce(
+        places as unknown,
+      )
       const route = await import('@/app/api/places/[location]/route')
       const res = await route.GET(
         createRequest('http://localhost:3000/api/places/loc-123?zipCode=10001'),
@@ -474,7 +478,9 @@ describe('Miscellaneous Routes (Task 3D)', () => {
 
     it('should pass location and zipCode to client', async () => {
       const places = [{ id: 'p1', name: 'Shelter' }]
-      vi.mocked(getDonationOpportunities).mockResolvedValueOnce(places as any)
+      vi.mocked(getDonationOpportunities).mockResolvedValueOnce(
+        places as unknown,
+      )
       const route = await import('@/app/api/places/[location]/route')
       await route.GET(
         createRequest('http://localhost:3000/api/places/loc-456?zipCode=90210'),

@@ -6,7 +6,7 @@ import { triggerBackgroundSync } from '@/lib/square/sync'
 import { db } from '@/db'
 import { posConnections, locations } from '@/db/schema'
 import { eq } from 'drizzle-orm'
-import { ApiError, logErrorSafely } from '@/lib/api-error'
+import { logErrorSafely } from '@/lib/api-error'
 
 /**
  * GET /api/square/callback

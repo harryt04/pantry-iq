@@ -13,8 +13,7 @@
  * Database operations are tested through integration with actual Drizzle ORM mocks.
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { NextRequest } from 'next/server'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // Mock CSV parser
 vi.mock('@/lib/csv/parser', () => ({
@@ -519,7 +518,7 @@ describe('CSV Field Mapping Route Handler', () => {
       ]
 
       let importedRows = 0
-      let errors: any[] = []
+      const errors: Array<{ row: number; message: string }> = []
 
       rows.forEach((row) => {
         const isValid = row.item && row.qty && row.date

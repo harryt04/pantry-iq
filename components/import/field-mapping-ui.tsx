@@ -51,9 +51,6 @@ export function FieldMappingUI({
   onCancel,
 }: FieldMappingUIProps) {
   const [mapping, setMapping] = useState<FieldMapping>({})
-  const [suggestedMapping, setSuggestedMapping] = useState<FieldMapping | null>(
-    null,
-  )
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isConfirming, setIsConfirming] = useState(false)
@@ -84,7 +81,6 @@ export function FieldMappingUI({
         }
 
         if (data.suggestedMapping) {
-          setSuggestedMapping(data.suggestedMapping)
           setMapping(data.suggestedMapping)
         }
       } catch (err) {

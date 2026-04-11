@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 import { POST } from '@/app/api/csv/upload/route'
 
@@ -20,9 +20,6 @@ vi.mock('@/db', () => ({
 vi.mock('@/lib/csv/parser', () => ({
   parseCSV: vi.fn(),
 }))
-
-import { db } from '@/db'
-import { parseCSV } from '@/lib/csv/parser'
 
 describe('Debug', () => {
   it('should print error message', async () => {

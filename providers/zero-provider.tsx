@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { Zero } from '@rocicorp/zero'
-import { getZeroClient, closeZeroClient } from '@/lib/zero'
+import { getZeroClient } from '@/lib/zero'
 import { useSession } from '@/lib/auth-client'
 import type { Schema } from '@/lib/zero/schema'
 

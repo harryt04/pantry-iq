@@ -16,8 +16,7 @@ export function BetaNotice() {
   const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
-    // Show dialog on mount
-    setIsOpen(true)
+    // Dialog is already open by default
   }, [])
 
   return (

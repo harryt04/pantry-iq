@@ -24,7 +24,7 @@ function getUploadDir(): string {
 export async function ensureUploadDir(): Promise<string> {
   const uploadDir = getUploadDir()
   try {
-    await (fs.mkdir as any)(/*turbopackIgnore: true*/ uploadDir, {
+    await fs.mkdir(/*turbopackIgnore: true*/ uploadDir, {
       recursive: true,
     })
   } catch (error) {
@@ -46,7 +46,7 @@ export async function getUploadFilePath(uploadId: string): Promise<string> {
  */
 export async function readCSVFile(uploadId: string): Promise<Buffer> {
   const filePath = await getUploadFilePath(uploadId)
-  return (fs.readFile as any)(/*turbopackIgnore: true*/ filePath)
+  return fs.readFile(/*turbopackIgnore: true*/ filePath)
 }
 
 /**
@@ -57,7 +57,7 @@ export async function writeCSVFile(
   buffer: Buffer,
 ): Promise<void> {
   const filePath = await getUploadFilePath(uploadId)
-  await (fs.writeFile as any)(/*turbopackIgnore: true*/ filePath, buffer)
+  await fs.writeFile(/*turbopackIgnore: true*/ filePath, buffer)
 }
 
 /**
@@ -65,5 +65,5 @@ export async function writeCSVFile(
  */
 export async function deleteCSVFile(uploadId: string): Promise<void> {
   const filePath = await getUploadFilePath(uploadId)
-  await (fs.unlink as any)(/*turbopackIgnore: true*/ filePath)
+  await fs.unlink(/*turbopackIgnore: true*/ filePath)
 }

@@ -28,9 +28,10 @@ import {
 } from '@/scripts/generate-test-csv-faker'
 
 // For encoding tests
+let iconv: unknown
 try {
-  var iconv = require('iconv-lite')
-} catch (e) {
+  iconv = await import('iconv-lite')
+} catch {
   // iconv-lite may not be installed; tests will skip if unavailable
 }
 

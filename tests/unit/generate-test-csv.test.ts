@@ -10,7 +10,6 @@ import {
   isValidCurrency,
   isValidInteger,
   parseDate,
-  isDateInRange,
 } from '@/lib/csv-parser'
 
 // ============================================================================
@@ -209,7 +208,7 @@ describe('Test Data Generation Script', () => {
     it('should have valid transaction data types', () => {
       const parsed = parseGeneratedCSV(transactionContent)
 
-      parsed.rows.forEach((row, index) => {
+      parsed.rows.forEach((row) => {
         expect(isValidDate(row.Date)).toBe(true)
         expect(isValidTime(row.Time)).toBe(true)
         expect(row['Item Name'].length).toBeGreaterThan(0)

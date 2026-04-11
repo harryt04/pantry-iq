@@ -23,6 +23,59 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
 // ============================================================================
+// Types
+// ============================================================================
+
+/** Mock database query chain interface */
+interface MockDatabaseChain {
+  from: ReturnType<typeof vi.fn>
+  where?: ReturnType<typeof vi.fn>
+  returning?: ReturnType<typeof vi.fn>
+  orderBy?: ReturnType<typeof vi.fn>
+  select?: ReturnType<typeof vi.fn>
+  set?: ReturnType<typeof vi.fn>
+  values?: ReturnType<typeof vi.fn>
+}
+
+/** Conversation mock object */
+interface MockConversation {
+  id: string
+  locationId: string
+  defaultModel: string
+  createdAt: Date
+}
+
+/** Location mock object */
+interface MockLocation {
+  id: string
+  userId: string
+  name: string
+  zipCode: string
+  address: string
+  timezone: string
+  type: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+/** Message mock object */
+interface MockMessage {
+  id: string
+  conversationId: string
+  role: string
+  content: string
+  modelUsed: string | null
+  tokensIn: number | null
+  tokensOut: number | null
+  createdAt: Date
+}
+
+/** Route context parameter type */
+interface RouteContext {
+  params: Promise<Record<string, string>>
+}
+
+// ============================================================================
 // Mocks
 // ============================================================================
 
@@ -138,7 +191,7 @@ function mockSession(userId: string = 'user-123') {
       ipAddress: '127.0.0.1',
       userAgent: 'test-agent',
     },
-  } as any)
+  } as Record<string, unknown>)
 }
 
 /**
@@ -151,7 +204,9 @@ function mockNoSession() {
 /**
  * Create a mock conversation
  */
-function createMockConversation(overrides?: Partial<any>) {
+function createMockConversation(
+  overrides?: Partial<MockConversation>,
+): MockConversation {
   return {
     id: 'conv-123',
     locationId: 'loc-123',
@@ -164,7 +219,7 @@ function createMockConversation(overrides?: Partial<any>) {
 /**
  * Create a mock location
  */
-function createMockLocation(overrides?: Partial<any>) {
+function createMockLocation(overrides?: Partial<MockLocation>): MockLocation {
   return {
     id: 'loc-123',
     userId: 'user-123',
@@ -182,7 +237,7 @@ function createMockLocation(overrides?: Partial<any>) {
 /**
  * Create a mock message
  */
-function createMockMessage(overrides?: Partial<any>) {
+function createMockMessage(overrides?: Partial<MockMessage>): MockMessage {
   return {
     id: 'msg-123',
     conversationId: 'conv-123',
@@ -199,7 +254,9 @@ function createMockMessage(overrides?: Partial<any>) {
 /**
  * Mock database query builder chain
  */
-function createMockDatabaseChain(result: any[] | null = null) {
+function createMockDatabaseChain(
+  result: Record<string, unknown>[] | null = null,
+): MockDatabaseChain {
   return {
     from: vi.fn().mockReturnThis(),
     where: vi.fn().mockResolvedValue(result || []),
@@ -215,8 +272,8 @@ function createMockDatabaseChain(result: any[] | null = null) {
  * Mock database for GET routes (multiple select calls)
  */
 function mockDatabaseForGetRoute(
-  firstResult: any[],
-  secondResult: any[] | null = null,
+  firstResult: Record<string, unknown>[],
+  secondResult: Record<string, unknown>[] | null = null,
 ) {
   let selectCallCount = 0
 
@@ -229,7 +286,7 @@ function mockDatabaseForGetRoute(
         .mockResolvedValue(
           selectCallCount === 1 ? firstResult : secondResult || [],
         ),
-    } as any
+    } as MockDatabaseChain
   })
 }
 
@@ -237,8 +294,8 @@ function mockDatabaseForGetRoute(
  * Mock database for POST (create) - needs insert + verify select
  */
 function mockDatabaseForCreateRoute(
-  locationResult: any[],
-  createResult: any[],
+  locationResult: Record<string, unknown>[],
+  createResult: Record<string, unknown>[],
 ) {
   let selectCallCount = 0
 
@@ -249,21 +306,21 @@ function mockDatabaseForCreateRoute(
       where: vi
         .fn()
         .mockResolvedValue(selectCallCount === 1 ? locationResult : []),
-    } as any
+    } as MockDatabaseChain
   })
 
   vi.mocked(db.insert).mockReturnValue({
     values: vi.fn().mockReturnThis(),
     returning: vi.fn().mockResolvedValue(createResult),
-  } as any)
+  } as MockDatabaseChain)
 }
 
 /**
  * Mock database for DELETE - needs verify selects + delete
  */
 function mockDatabaseForDeleteRoute(
-  conversationResult: any[],
-  locationResult: any[],
+  conversationResult: Record<string, unknown>[],
+  locationResult: Record<string, unknown>[],
 ) {
   let selectCallCount = 0
 
@@ -276,19 +333,21 @@ function mockDatabaseForDeleteRoute(
         .mockResolvedValue(
           selectCallCount === 1 ? conversationResult : locationResult,
         ),
-    } as any
+    } as MockDatabaseChain
   })
 
   vi.mocked(db.delete).mockReturnValue({
     where: vi.fn().mockReturnThis(),
-  } as any)
+  } as MockDatabaseChain)
 }
 
 /**
  * Mock database for routes that list with location verification
  */
-function mockDatabaseForListRoute(result: any[]) {
-  vi.mocked(db.select).mockReturnValue(createMockDatabaseChain(result) as any)
+function mockDatabaseForListRoute(result: Record<string, unknown>[]) {
+  vi.mocked(db.select).mockReturnValue(
+    createMockDatabaseChain(result) as unknown as ReturnType<typeof db.select>,
+  )
 }
 
 // ============================================================================
@@ -348,7 +407,7 @@ describe('Conversations Routes', () => {
           where: vi
             .fn()
             .mockResolvedValue(selectCount === 1 ? [{ id: 'loc-123' }] : []),
-        } as any
+        } as MockDatabaseChain
       })
 
       const routeModule = await import('@/app/api/conversations/route')
@@ -381,7 +440,7 @@ describe('Conversations Routes', () => {
             .mockResolvedValue(
               selectCount === 1 ? [{ id: 'loc-123' }] : conversations,
             ),
-        } as any
+        } as MockDatabaseChain
       })
 
       const routeModule = await import('@/app/api/conversations/route')
@@ -402,7 +461,9 @@ describe('Conversations Routes', () => {
       const chain = createMockDatabaseChain()
       chain.where = vi.fn().mockRejectedValue(new Error('DB error'))
 
-      vi.mocked(db.select).mockReturnValue(chain as any)
+      vi.mocked(db.select).mockReturnValue(
+        chain as unknown as ReturnType<typeof db.select>,
+      )
 
       const routeModule = await import('@/app/api/conversations/route')
       const request = createRequest()
@@ -595,13 +656,13 @@ describe('Conversations Routes', () => {
         return {
           from: vi.fn().mockReturnThis(),
           where: vi.fn().mockResolvedValue(selectCount === 1 ? [location] : []),
-        } as any
+        } as MockDatabaseChain
       })
 
       vi.mocked(db.insert).mockReturnValue({
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockRejectedValue(new Error('DB error')),
-      } as any)
+      } as RouteContext)
 
       const routeModule = await import('@/app/api/conversations/route')
       const request = createRequest(
@@ -630,7 +691,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(401)
@@ -646,7 +707,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'nonexistent' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(404)
@@ -665,7 +726,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(403)
@@ -684,7 +745,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(200)
@@ -697,14 +758,16 @@ describe('Conversations Routes', () => {
       const chain = createMockDatabaseChain()
       chain.where = vi.fn().mockRejectedValue(new Error('DB error'))
 
-      vi.mocked(db.select).mockReturnValue(chain as any)
+      vi.mocked(db.select).mockReturnValue(
+        chain as unknown as ReturnType<typeof db.select>,
+      )
 
       const routeModule = await import('@/app/api/conversations/[id]/route')
       const request = createRequest()
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(500)
@@ -728,7 +791,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.PATCH(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(401)
@@ -749,7 +812,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.PATCH(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(400)
@@ -769,7 +832,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.PATCH(request, {
         params: Promise.resolve({ id: 'nonexistent' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(404)
@@ -792,7 +855,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.PATCH(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(403)
@@ -820,7 +883,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.PATCH(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(400)
@@ -843,7 +906,7 @@ describe('Conversations Routes', () => {
           where: vi
             .fn()
             .mockResolvedValue(selectCount === 1 ? [conversation] : [location]),
-        } as any
+        } as MockDatabaseChain
       })
 
       const { getModel } = await import('@/lib/ai/models')
@@ -856,7 +919,7 @@ describe('Conversations Routes', () => {
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([updatedConversation]),
-      } as any)
+      } as RouteContext)
 
       const routeModule = await import('@/app/api/conversations/[id]/route')
       const request = createRequest(
@@ -867,7 +930,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.PATCH(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(200)
@@ -891,7 +954,7 @@ describe('Conversations Routes', () => {
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         returning: vi.fn().mockRejectedValue(new Error('DB error')),
-      } as any)
+      } as RouteContext)
 
       const routeModule = await import('@/app/api/conversations/[id]/route')
       const request = createRequest(
@@ -902,7 +965,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.PATCH(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(500)
@@ -925,7 +988,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.DELETE(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(401)
@@ -944,7 +1007,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.DELETE(request, {
         params: Promise.resolve({ id: 'nonexistent' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(404)
@@ -966,7 +1029,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.DELETE(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(403)
@@ -986,12 +1049,12 @@ describe('Conversations Routes', () => {
           where: vi
             .fn()
             .mockResolvedValue(selectCount === 1 ? [conversation] : [location]),
-        } as any
+        } as MockDatabaseChain
       })
 
       vi.mocked(db.delete).mockReturnValue({
         where: vi.fn().mockReturnThis(),
-      } as any)
+      } as RouteContext)
 
       const routeModule = await import('@/app/api/conversations/[id]/route')
       const request = createRequest(
@@ -1001,7 +1064,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.DELETE(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(200)
@@ -1013,7 +1076,9 @@ describe('Conversations Routes', () => {
       const chain = createMockDatabaseChain()
       chain.where = vi.fn().mockRejectedValue(new Error('DB error'))
 
-      vi.mocked(db.select).mockReturnValue(chain as any)
+      vi.mocked(db.select).mockReturnValue(
+        chain as unknown as ReturnType<typeof db.select>,
+      )
 
       const routeModule = await import('@/app/api/conversations/[id]/route')
       const request = createRequest(
@@ -1023,7 +1088,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.DELETE(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(500)
@@ -1044,7 +1109,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(401)
@@ -1054,14 +1119,12 @@ describe('Conversations Routes', () => {
     it('should return 404 when conversation not found', async () => {
       mockSession('user-123')
 
-      let selectCount = 0
       vi.mocked(db.select).mockImplementation(() => {
-        selectCount++
         return {
           from: vi.fn().mockReturnThis(),
           where: vi.fn().mockResolvedValue([]),
           orderBy: vi.fn().mockReturnThis(),
-        } as any
+        } as MockDatabaseChain
       })
 
       const routeModule =
@@ -1070,7 +1133,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'nonexistent' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(404)
@@ -1091,7 +1154,7 @@ describe('Conversations Routes', () => {
             .fn()
             .mockResolvedValue(selectCount === 1 ? [conversation] : [location]),
           orderBy: vi.fn().mockReturnThis(),
-        } as any
+        } as MockDatabaseChain
       })
 
       const routeModule =
@@ -1100,7 +1163,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(403)
@@ -1120,20 +1183,20 @@ describe('Conversations Routes', () => {
           return {
             from: vi.fn().mockReturnThis(),
             where: vi.fn().mockResolvedValue([conversation]),
-          } as any
+          } as MockDatabaseChain
         } else if (selectCount === 2) {
           // Second call: get location
           return {
             from: vi.fn().mockReturnThis(),
             where: vi.fn().mockResolvedValue([location]),
-          } as any
+          } as MockDatabaseChain
         } else {
           // Third call: get messages (with orderBy)
           return {
             from: vi.fn().mockReturnThis(),
             where: vi.fn().mockReturnThis(),
             orderBy: vi.fn().mockResolvedValue([]),
-          } as any
+          } as MockDatabaseChain
         }
       })
 
@@ -1143,7 +1206,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(200)
@@ -1175,20 +1238,20 @@ describe('Conversations Routes', () => {
           return {
             from: vi.fn().mockReturnThis(),
             where: vi.fn().mockResolvedValue([conversation]),
-          } as any
+          } as MockDatabaseChain
         } else if (selectCount === 2) {
           // Second call: get location
           return {
             from: vi.fn().mockReturnThis(),
             where: vi.fn().mockResolvedValue([location]),
-          } as any
+          } as MockDatabaseChain
         } else {
           // Third call: get messages (with orderBy)
           return {
             from: vi.fn().mockReturnThis(),
             where: vi.fn().mockReturnThis(),
             orderBy: vi.fn().mockResolvedValue(messages),
-          } as any
+          } as MockDatabaseChain
         }
       })
 
@@ -1198,7 +1261,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(200)
@@ -1227,20 +1290,20 @@ describe('Conversations Routes', () => {
           return {
             from: vi.fn().mockReturnThis(),
             where: vi.fn().mockResolvedValue([conversation]),
-          } as any
+          } as MockDatabaseChain
         } else if (selectCount === 2) {
           // Second call: get location
           return {
             from: vi.fn().mockReturnThis(),
             where: vi.fn().mockResolvedValue([location]),
-          } as any
+          } as MockDatabaseChain
         } else {
           // Third call: get messages (with orderBy)
           return {
             from: vi.fn().mockReturnThis(),
             where: vi.fn().mockReturnThis(),
             orderBy: vi.fn().mockResolvedValue(messages),
-          } as any
+          } as MockDatabaseChain
         }
       })
 
@@ -1250,7 +1313,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(200)
@@ -1263,7 +1326,9 @@ describe('Conversations Routes', () => {
       const chain = createMockDatabaseChain()
       chain.where = vi.fn().mockRejectedValue(new Error('DB error'))
 
-      vi.mocked(db.select).mockReturnValue(chain as any)
+      vi.mocked(db.select).mockReturnValue(
+        chain as unknown as ReturnType<typeof db.select>,
+      )
 
       const routeModule =
         await import('@/app/api/conversations/[id]/history/route')
@@ -1271,7 +1336,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(500)
@@ -1296,7 +1361,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.POST(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(401)
@@ -1315,7 +1380,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.POST(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(400)
@@ -1325,14 +1390,12 @@ describe('Conversations Routes', () => {
     it('should return 404 when conversation not found', async () => {
       mockSession('user-123')
 
-      let selectCount = 0
       vi.mocked(db.select).mockImplementation(() => {
-        selectCount++
         return {
           from: vi.fn().mockReturnThis(),
           where: vi.fn().mockResolvedValue([]),
           orderBy: vi.fn().mockReturnThis(),
-        } as any
+        } as MockDatabaseChain
       })
 
       const routeModule =
@@ -1345,7 +1408,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.POST(request, {
         params: Promise.resolve({ id: 'nonexistent' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(404)
@@ -1366,7 +1429,7 @@ describe('Conversations Routes', () => {
             .fn()
             .mockResolvedValue(selectCount === 1 ? [conversation] : [location]),
           orderBy: vi.fn().mockReturnThis(),
-        } as any
+        } as MockDatabaseChain
       })
 
       const routeModule =
@@ -1379,7 +1442,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.POST(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
       const body = await response.json()
 
       expect(response.status).toBe(403)
@@ -1400,18 +1463,18 @@ describe('Conversations Routes', () => {
           return {
             from: vi.fn().mockReturnThis(),
             where: vi.fn().mockResolvedValue([conversation]),
-          } as any
+          } as MockDatabaseChain
         } else if (selectCount === 2) {
           return {
             from: vi.fn().mockReturnThis(),
             where: vi.fn().mockResolvedValue([location]),
-          } as any
+          } as MockDatabaseChain
         } else {
           return {
             from: vi.fn().mockReturnThis(),
             where: vi.fn().mockReturnThis(),
             orderBy: vi.fn().mockResolvedValue([]),
-          } as any
+          } as MockDatabaseChain
         }
       })
 
@@ -1422,7 +1485,7 @@ describe('Conversations Routes', () => {
       })
 
       const { buildContextData } = await import('@/lib/ai/context-builder')
-      vi.mocked(buildContextData).mockResolvedValue({} as any)
+      vi.mocked(buildContextData).mockResolvedValue({} as RouteContext)
 
       const { buildPromptWithContext } = await import('@/lib/ai/prompts')
       vi.mocked(buildPromptWithContext).mockReturnValue('System prompt')
@@ -1443,7 +1506,7 @@ describe('Conversations Routes', () => {
           input: 100,
           output: 150,
         }),
-      } as any)
+      } as RouteContext)
 
       const savedKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY
       process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test-key'
@@ -1459,7 +1522,7 @@ describe('Conversations Routes', () => {
 
         const response = await routeModule.POST(request, {
           params: Promise.resolve({ id: 'conv-123' }),
-        } as any)
+        } as RouteContext)
 
         // Verify response is a streaming response
         expect(response.status).toBe(200)
@@ -1495,7 +1558,7 @@ describe('Conversations Routes', () => {
                   : [],
             ),
           orderBy: vi.fn().mockReturnThis(),
-        } as any
+        } as MockDatabaseChain
       })
 
       const { getModel } = await import('@/lib/ai/models')
@@ -1505,7 +1568,7 @@ describe('Conversations Routes', () => {
       })
 
       const { buildContextData } = await import('@/lib/ai/context-builder')
-      vi.mocked(buildContextData).mockResolvedValue({} as any)
+      vi.mocked(buildContextData).mockResolvedValue({} as RouteContext)
 
       const { buildPromptWithContext } = await import('@/lib/ai/prompts')
       vi.mocked(buildPromptWithContext).mockReturnValue('System prompt')
@@ -1527,8 +1590,7 @@ describe('Conversations Routes', () => {
 
       const response = await routeModule.POST(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
-      const body = await response.json()
+      } as RouteContext)
 
       expect(response.status).toBe(503)
 
@@ -1556,7 +1618,7 @@ describe('Conversations Routes', () => {
                   : [],
             ),
           orderBy: vi.fn().mockReturnThis(),
-        } as any
+        } as MockDatabaseChain
       })
 
       const { getModel } = await import('@/lib/ai/models')
@@ -1566,7 +1628,7 @@ describe('Conversations Routes', () => {
       })
 
       const { buildContextData } = await import('@/lib/ai/context-builder')
-      vi.mocked(buildContextData).mockResolvedValue({} as any)
+      vi.mocked(buildContextData).mockResolvedValue({} as RouteContext)
 
       const { buildPromptWithContext } = await import('@/lib/ai/prompts')
       vi.mocked(buildPromptWithContext).mockReturnValue('System prompt')
@@ -1584,7 +1646,7 @@ describe('Conversations Routes', () => {
           input: 100,
           output: 150,
         }),
-      } as any)
+      } as RouteContext)
 
       const routeModule =
         await import('@/app/api/conversations/[id]/message/route')
@@ -1596,7 +1658,7 @@ describe('Conversations Routes', () => {
 
       await routeModule.POST(request, {
         params: Promise.resolve({ id: 'conv-123' }),
-      } as any)
+      } as RouteContext)
 
       expect(persistUserMessage).toHaveBeenCalledWith(
         'conv-123',

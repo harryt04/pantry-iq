@@ -58,7 +58,7 @@ describe('Places Client - getDonationOpportunities', () => {
 
   describe('Cache hit - returns stored data', () => {
     it('should return cached data if fresh (less than 30 days old)', async () => {
-      const mockCachedData: any[] = [
+      const mockCachedData: Record<string, unknown>[] = [
         {
           id: '1',
           locationId,
@@ -233,7 +233,7 @@ describe('Places Client - getDonationOpportunities', () => {
     it('should not refresh cache if fresher than 30 days', async () => {
       const freshDate = new Date(now.getTime() - 29 * 24 * 60 * 60 * 1000) // 29 days ago
 
-      const mockFreshCache: any[] = [
+      const mockFreshCache: Record<string, unknown>[] = [
         {
           id: '1',
           locationId,

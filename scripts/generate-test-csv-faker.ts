@@ -1081,7 +1081,7 @@ function generateTabDelim(opts: GeneratorOptions): GeneratedCSV {
   return result
 }
 
-function generateHeadersOnly(_opts: GeneratorOptions): GeneratedCSV {
+function generateHeadersOnly(): GeneratedCSV {
   return {
     headers: ['Date', 'Item', 'Qty', 'Revenue', 'Cost'],
     rows: [],

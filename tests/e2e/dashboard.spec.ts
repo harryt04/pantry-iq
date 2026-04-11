@@ -29,7 +29,7 @@ test.describe('Dashboard E2E Tests', () => {
 
   test('Shows location info and transaction count', async ({ page }) => {
     // First create a location via API
-    const locationResponse = await page.evaluate(async () => {
+    await page.evaluate(async () => {
       const response = await fetch('/api/locations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -141,7 +141,7 @@ test.describe('Dashboard E2E Tests', () => {
 
   test('Dashboard is read-only (no edit forms)', async ({ page }) => {
     // Create a location for this test
-    const locationResponse = await page.evaluate(async () => {
+    await page.evaluate(async () => {
       const response = await fetch('/api/locations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -159,7 +159,6 @@ test.describe('Dashboard E2E Tests', () => {
 
     // Check that there are no edit buttons or forms on the dashboard
     const editButtons = page.locator('button:has-text("Edit")')
-    const forms = page.locator('form')
 
     await expect(editButtons).toHaveCount(0)
 

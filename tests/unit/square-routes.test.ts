@@ -56,7 +56,7 @@ vi.mock('@/lib/square/encryption', () => ({
 // Mock Square sync module
 vi.mock('@/lib/square/sync', () => ({
   triggerBackgroundSync: vi.fn().mockResolvedValue(undefined),
-  SquareSyncManager: vi.fn(function (client, locationId) {
+  SquareSyncManager: vi.fn(function () {
     this.syncTransactions = vi.fn().mockResolvedValue({ synced: 5, errors: 0 })
   }),
 }))
@@ -73,7 +73,7 @@ vi.mock('drizzle-orm', async (importOriginal) => {
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { createSquareClient } from '@/lib/square/client'
-import { encrypt, decrypt } from '@/lib/square/encryption'
+import { encrypt } from '@/lib/square/encryption'
 import { triggerBackgroundSync, SquareSyncManager } from '@/lib/square/sync'
 
 // ============================================================================
@@ -122,7 +122,7 @@ function mockSession(userId: string = 'user-123') {
       ipAddress: '127.0.0.1',
       userAgent: 'test-agent',
     },
-  } as any)
+  } as Record<string, unknown>)
 }
 
 /**
@@ -135,7 +135,7 @@ function mockNoSession() {
 /**
  * Create a mock location
  */
-function createMockLocation(overrides?: Partial<any>) {
+function createMockLocation(overrides?: Partial<Record<string, unknown>>) {
   return {
     id: 'loc-123',
     userId: 'user-123',
@@ -153,7 +153,7 @@ function createMockLocation(overrides?: Partial<any>) {
 /**
  * Create a mock POS connection
  */
-function createMockConnection(overrides?: Partial<any>) {
+function createMockConnection(overrides?: Partial<Record<string, unknown>>) {
   return {
     id: 'conn-123',
     locationId: 'loc-123',
@@ -173,11 +173,13 @@ function createMockConnection(overrides?: Partial<any>) {
  * Properly supports: select().from(table).where(...).limit(1)
  * And: insert(table).values(...).returning()
  */
-function createMockDatabaseChain(result: any[] | null = null) {
+function createMockDatabaseChain(
+  result: Record<string, unknown>[] | null = null,
+) {
   const resolvedResult = result || []
 
   // Create the base object that will be returned and is thenable
-  const queryChain: any = {
+  const queryChain: Record<string, unknown> = {
     then: undefined,
     catch: undefined,
     finally: undefined,
@@ -193,14 +195,19 @@ function createMockDatabaseChain(result: any[] | null = null) {
   queryChain.andWhere = vi.fn().mockReturnValue(queryChain)
 
   // Make it thenable (act like a Promise)
-  queryChain.then = function (onFulfilled?: any, onRejected?: any) {
-    return Promise.resolve(resolvedResult).then(onFulfilled, onRejected)
+  queryChain.then = function (onFulfilled?: unknown, onRejected?: unknown) {
+    return Promise.resolve(resolvedResult).then(
+      onFulfilled as (value: unknown) => unknown,
+      onRejected as (reason?: unknown) => unknown,
+    )
   }
-  queryChain.catch = function (onRejected?: any) {
-    return Promise.resolve(resolvedResult).catch(onRejected)
+  queryChain.catch = function (onRejected?: unknown) {
+    return Promise.resolve(resolvedResult).catch(
+      onRejected as (reason?: unknown) => unknown,
+    )
   }
-  queryChain.finally = function (onFinally?: any) {
-    return Promise.resolve(resolvedResult).finally(onFinally)
+  queryChain.finally = function (onFinally?: unknown) {
+    return Promise.resolve(resolvedResult).finally(onFinally as () => void)
   }
 
   // Make it act like a Promise for instanceof checks
@@ -219,11 +226,13 @@ function createMockDatabaseChain(result: any[] | null = null) {
 /**
  * Setup mock database with query chain for a single operation
  */
-function mockDatabaseQueryChain(result: any[] | null = null) {
+function mockDatabaseQueryChain(
+  result: Record<string, unknown>[] | null = null,
+) {
   const chain = createMockDatabaseChain(result)
-  vi.mocked(db.select).mockReturnValue(chain as any)
-  vi.mocked(db.insert).mockReturnValue(chain as any)
-  vi.mocked(db.update).mockReturnValue(chain as any)
+  vi.mocked(db.select).mockReturnValue(chain as Record<string, unknown>)
+  vi.mocked(db.insert).mockReturnValue(chain as Record<string, unknown>)
+  vi.mocked(db.update).mockReturnValue(chain as Record<string, unknown>)
   return chain
 }
 
@@ -231,14 +240,16 @@ function mockDatabaseQueryChain(result: any[] | null = null) {
  * Setup mock database to return different results for sequential calls
  * Useful when you need to mock multiple select() calls
  */
-function mockDatabaseMultipleResults(...results: (any[] | null)[]) {
+function mockDatabaseMultipleResults(
+  ...results: (Record<string, unknown>[] | null)[]
+) {
   let callIndex = 0
   const chains = results.map((r) => createMockDatabaseChain(r))
 
   vi.mocked(db.select).mockImplementation(() => {
     const chain = chains[callIndex]
     callIndex++
-    return chain as any
+    return chain as Record<string, unknown>
   })
 
   return chains
@@ -247,7 +258,7 @@ function mockDatabaseMultipleResults(...results: (any[] | null)[]) {
 /**
  * Setup mock Square client
  */
-function mockSquareClient(overrides?: Partial<any>) {
+function mockSquareClient(overrides?: Partial<Record<string, unknown>>) {
   const client = {
     buildOAuthURL: vi
       .fn()
@@ -265,7 +276,9 @@ function mockSquareClient(overrides?: Partial<any>) {
     ...overrides,
   }
 
-  vi.mocked(createSquareClient).mockReturnValue(client as any)
+  vi.mocked(createSquareClient).mockReturnValue(
+    client as Record<string, unknown>,
+  )
   return client
 }
 
@@ -424,7 +437,7 @@ describe('Square Routes', () => {
       const chain = createMockDatabaseChain()
       chain.where.mockRejectedValueOnce(new Error('Database connection failed'))
 
-      vi.mocked(db.select).mockReturnValue(chain as any)
+      vi.mocked(db.select).mockReturnValue(chain as Record<string, unknown>)
 
       const routeModule = await import('@/app/api/square/connect/route')
       const request = createRequest(
@@ -600,7 +613,9 @@ describe('Square Routes', () => {
 
       // Mock insert to return connection
       const insertChain = createMockDatabaseChain([connection])
-      vi.mocked(db.insert).mockReturnValue(insertChain as any)
+      vi.mocked(db.insert).mockReturnValue(
+        insertChain as Record<string, unknown>,
+      )
 
       const routeModule = await import('@/app/api/square/callback/route')
       const url = new URL(
@@ -631,7 +646,9 @@ describe('Square Routes', () => {
       mockSquareClient()
 
       const insertChain = createMockDatabaseChain([connection])
-      vi.mocked(db.insert).mockReturnValue(insertChain as any)
+      vi.mocked(db.insert).mockReturnValue(
+        insertChain as Record<string, unknown>,
+      )
 
       const routeModule = await import('@/app/api/square/callback/route')
       const url = new URL(
@@ -660,7 +677,9 @@ describe('Square Routes', () => {
       mockSquareClient()
 
       const insertChain = createMockDatabaseChain([connection])
-      vi.mocked(db.insert).mockReturnValue(insertChain as any)
+      vi.mocked(db.insert).mockReturnValue(
+        insertChain as Record<string, unknown>,
+      )
 
       const routeModule = await import('@/app/api/square/callback/route')
       const url = new URL(
@@ -695,7 +714,9 @@ describe('Square Routes', () => {
       mockSquareClient()
 
       const insertChain = createMockDatabaseChain([connection])
-      vi.mocked(db.insert).mockReturnValue(insertChain as any)
+      vi.mocked(db.insert).mockReturnValue(
+        insertChain as Record<string, unknown>,
+      )
 
       const routeModule = await import('@/app/api/square/callback/route')
       const url = new URL(
@@ -790,7 +811,7 @@ describe('Square Routes', () => {
       mockSession('user-123')
 
       const chain = createMockDatabaseChain([])
-      vi.mocked(db.select).mockReturnValue(chain as any)
+      vi.mocked(db.select).mockReturnValue(chain as Record<string, unknown>)
 
       const routeModule = await import('@/app/api/square/sync/route')
       const request = createRequest(
@@ -868,13 +889,13 @@ describe('Square Routes', () => {
 
       // Override the SquareSyncManager mock for this specific test
       vi.mocked(SquareSyncManager).mockImplementation(function (
-        client: any,
-        locationId: string,
+        _client: Record<string, unknown>,
+        _locationId: string,
       ) {
         this.syncTransactions = vi
           .fn()
           .mockResolvedValue({ synced: 10, errors: 2 })
-      } as any)
+      } as Record<string, unknown>)
 
       mockSquareClient()
 
@@ -903,13 +924,13 @@ describe('Square Routes', () => {
 
       // Override the SquareSyncManager mock for this specific test
       vi.mocked(SquareSyncManager).mockImplementation(function (
-        client: any,
-        locationId: string,
+        _client: Record<string, unknown>,
+        _locationId: string,
       ) {
         this.syncTransactions = vi
           .fn()
           .mockRejectedValue(new Error('Square API temporarily unavailable'))
-      } as any)
+      } as Record<string, unknown>)
 
       mockSquareClient()
 
@@ -940,13 +961,13 @@ describe('Square Routes', () => {
 
       // Reset SquareSyncManager to default implementation
       vi.mocked(SquareSyncManager).mockImplementation(function (
-        client: any,
-        locationId: string,
+        _client: Record<string, unknown>,
+        _locationId: string,
       ) {
         this.syncTransactions = vi
           .fn()
           .mockResolvedValue({ synced: 5, errors: 0 })
-      } as any)
+      } as Record<string, unknown>)
 
       const routeModule = await import('@/app/api/square/sync/route')
       const request = createRequest(
@@ -968,7 +989,7 @@ describe('Square Routes', () => {
       const chain = createMockDatabaseChain()
       chain.where.mockRejectedValueOnce(new Error('Database connection failed'))
 
-      vi.mocked(db.select).mockReturnValue(chain as any)
+      vi.mocked(db.select).mockReturnValue(chain as Record<string, unknown>)
 
       const routeModule = await import('@/app/api/square/sync/route')
       const request = createRequest(

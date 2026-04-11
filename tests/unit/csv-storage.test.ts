@@ -530,7 +530,6 @@ describe('CSV Storage Layer', () => {
       const specialIds = ['file!@#$', 'file with spaces', 'file\twith\ttabs']
 
       for (const uploadId of specialIds) {
-        const buffer = Buffer.from('Test,Data\n')
         // Should not throw during path generation
         const filePath = await csvStorage.getUploadFilePath(uploadId)
         expect(typeof filePath).toBe('string')

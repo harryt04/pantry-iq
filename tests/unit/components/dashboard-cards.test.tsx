@@ -784,7 +784,9 @@ describe('Dashboard Cards', () => {
 
       it('should toggle Start Conversation between link and disabled state', () => {
         const { rerender } = render(<QuickActionsCard hasLocations={true} />)
-        let chatLink = screen.getByRole('link', { name: /Start Conversation/ })
+        const chatLink = screen.getByRole('link', {
+          name: /Start Conversation/,
+        })
         expect(chatLink).toHaveAttribute('href', '/conversations')
 
         rerender(<QuickActionsCard hasLocations={false} />)

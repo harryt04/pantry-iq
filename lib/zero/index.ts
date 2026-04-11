@@ -106,7 +106,6 @@ export async function closeZeroClient(): Promise<void> {
  */
 export function useZero() {
   const [client, setClient] = useState<Zero<Schema> | null>(null)
-  const [error, setError] = useState<Error | null>(null)
   const [isConnected, setIsConnected] = useState(false)
 
   // Note: userId should come from the useSession hook in the provider
@@ -125,7 +124,6 @@ export function useZero() {
 
   return {
     client,
-    error,
     isConnected,
   }
 }
@@ -134,95 +132,60 @@ export function useZero() {
  * Hook to query locations (user's own locations only)
  * Note: This is a stub implementation. Use REST API instead for real data.
  */
-export function useLocations(
-  client: Zero<Schema> | null | undefined,
-  enabled: boolean = true,
-) {
-  const [locations, setLocations] = useState<Location[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
+export function useLocations() {
+  const [locations] = useState<Location[]>([])
 
-  return { locations, isLoading, error }
+  return { locations, isLoading: false, error: null }
 }
 
 /**
  * Hook to query conversations for a location
  * Note: This is a stub implementation. Use REST API instead for real data.
  */
-export function useConversations(
-  client: Zero<Schema> | null | undefined,
-  locationId: string | null,
-  enabled: boolean = true,
-) {
-  const [conversations, setConversations] = useState<Conversation[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
+export function useConversations() {
+  const [conversations] = useState<Conversation[]>([])
 
-  return { conversations, isLoading, error }
+  return { conversations, isLoading: false, error: null }
 }
 
 /**
  * Hook to query messages for a conversation
  * Note: This is a stub implementation. Use REST API instead for real data.
  */
-export function useMessages(
-  client: Zero<Schema> | null | undefined,
-  conversationId: string | null,
-  enabled: boolean = true,
-) {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
+export function useMessages() {
+  const [messages] = useState<Message[]>([])
 
-  return { messages, isLoading, error }
+  return { messages, isLoading: false, error: null }
 }
 
 /**
  * Hook to query CSV uploads for a location
  * Note: This is a stub implementation. Use REST API instead for real data.
  */
-export function useCsvUploads(
-  client: Zero<Schema> | null | undefined,
-  locationId: string | null,
-  enabled: boolean = true,
-) {
-  const [uploads, setUploads] = useState<CsvUpload[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
+export function useCsvUploads() {
+  const [uploads] = useState<CsvUpload[]>([])
 
-  return { uploads, isLoading, error }
+  return { uploads, isLoading: false, error: null }
 }
 
 /**
  * Hook to query transactions for a location
  * Note: This is a stub implementation. Use REST API instead for real data.
  */
-export function useTransactions(
-  client: Zero<Schema> | null | undefined,
-  locationId: string | null,
-  enabled: boolean = true,
-) {
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
+export function useTransactions() {
+  const [transactions] = useState<Transaction[]>([])
 
-  return { transactions, isLoading, error }
+  return { transactions, isLoading: false, error: null }
 }
 
 /**
  * Hook to query POS connections for a location
  * Note: This is a stub implementation. Use REST API instead for real data.
  */
-export function usePosConnections(
-  client: Zero<Schema> | null | undefined,
-  locationId: string | null,
-  enabled: boolean = true,
-) {
-  const [connections, setConnections] = useState<PosConnection[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
+export function usePosConnections() {
+  const [connections] = useState<PosConnection[]>([])
 
-  return { connections, isLoading, error }
+  return { connections, isLoading: false, error: null }
 }
 
 export type {

@@ -2,8 +2,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { SquareSyncManager } from '@/lib/square/sync'
 import { encrypt, decrypt } from '@/lib/square/encryption'
 import { db } from '@/db'
-import { posConnections, transactions } from '@/db/schema'
-import { eq } from 'drizzle-orm'
 import type { SquareClient } from '@/lib/square/client'
 import type { PantryIQTransaction } from '@/lib/square/types'
 
@@ -264,17 +262,17 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             limit: vi.fn().mockResolvedValue([]),
           }),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       vi.spyOn(db, 'update').mockReturnValue({
         set: vi.fn().mockReturnValue({
           where: vi.fn().mockResolvedValue([]),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       vi.spyOn(db, 'insert').mockReturnValue({
         values: vi.fn().mockResolvedValue([]),
-      } as any)
+      } as Record<string, unknown>)
     })
 
     it('should fetch transactions from Square API using access token', async () => {
@@ -299,7 +297,7 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             ]),
           }),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       await syncManager.syncTransactions(posConnectionId, encryptedToken)
 
@@ -331,7 +329,7 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             ]),
           }),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       await syncManager.syncTransactions(posConnectionId, encryptedToken)
 
@@ -379,12 +377,12 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             limit: vi.fn().mockResolvedValue([]), // No existing transactions
           }),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       const mockInsert = vi.spyOn(db, 'insert')
       mockInsert.mockReturnValue({
         values: vi.fn().mockResolvedValue([]),
-      } as any)
+      } as Record<string, unknown>)
 
       const result = await syncManager.syncTransactions(
         posConnectionId,
@@ -439,12 +437,12 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             }),
           }),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       const mockInsert = vi.spyOn(db, 'insert')
       mockInsert.mockReturnValue({
         values: vi.fn().mockResolvedValue([]),
-      } as any)
+      } as Record<string, unknown>)
 
       const result = await syncManager.syncTransactions(
         posConnectionId,
@@ -500,12 +498,12 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             }),
           }),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       const mockInsert = vi.spyOn(db, 'insert')
       mockInsert.mockReturnValue({
         values: vi.fn().mockResolvedValue([]),
-      } as any)
+      } as Record<string, unknown>)
 
       const result = await syncManager.syncTransactions(
         posConnectionId,
@@ -537,14 +535,14 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             ]),
           }),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       const mockUpdate = vi.spyOn(db, 'update')
       mockUpdate.mockReturnValue({
         set: vi.fn().mockReturnValue({
           where: vi.fn().mockResolvedValue([]),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       await syncManager.syncTransactions(posConnectionId, encryptedToken)
 
@@ -572,14 +570,14 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             ]),
           }),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       const mockUpdate = vi.spyOn(db, 'update')
       mockUpdate.mockReturnValue({
         set: vi.fn().mockReturnValue({
           where: vi.fn().mockResolvedValue([]),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       const result = await syncManager.syncTransactions(
         posConnectionId,
@@ -636,7 +634,7 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             limit: vi.fn().mockResolvedValue([]), // No existing
           }),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       let insertCallCount = 0
       vi.spyOn(db, 'insert').mockReturnValue({
@@ -647,7 +645,7 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
           }
           return Promise.resolve([])
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       const result = await syncManager.syncTransactions(
         posConnectionId,
@@ -691,14 +689,14 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             ]),
           }),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       const mockUpdate = vi.spyOn(db, 'update')
       mockUpdate.mockReturnValue({
         set: vi.fn().mockReturnValue({
           where: vi.fn().mockResolvedValue([]),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       const result = syncManager.syncTransactions(
         posConnectionId,
@@ -733,17 +731,17 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             limit: vi.fn().mockResolvedValue([]), // No existing
           }),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       const mockInsert = vi.spyOn(db, 'insert')
-      let insertedValues: any
+      let insertedValues: Record<string, unknown>
 
       mockInsert.mockReturnValue({
         values: vi.fn().mockImplementation((vals) => {
           insertedValues = vals
           return Promise.resolve([])
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       await syncManager.syncTransactions(posConnectionId, encryptedToken)
 
@@ -778,17 +776,17 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             limit: vi.fn().mockResolvedValue([]), // No existing
           }),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       const mockInsert = vi.spyOn(db, 'insert')
-      let insertedValues: any
+      let insertedValues: Record<string, unknown>
 
       mockInsert.mockReturnValue({
         values: vi.fn().mockImplementation((vals) => {
           insertedValues = vals
           return Promise.resolve([])
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       await syncManager.syncTransactions(posConnectionId, encryptedToken)
 
@@ -826,12 +824,12 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             limit: vi.fn().mockResolvedValue([]), // No existing
           }),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       const mockInsert = vi.spyOn(db, 'insert')
       mockInsert.mockReturnValue({
         values: vi.fn().mockResolvedValue([]),
-      } as any)
+      } as Record<string, unknown>)
 
       const result = await syncManager.syncTransactions(
         posConnectionId,
@@ -847,7 +845,7 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
       const encryptedToken = encrypt('real-access-token')
       const customLocationId = 'custom-loc-789'
 
-      const squareTransactions: any[] = [
+      const squareTransactions: Record<string, unknown>[] = [
         {
           date: new Date('2024-01-20'),
           item: 'Widget A',
@@ -868,17 +866,17 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             limit: vi.fn().mockResolvedValue([]), // No existing
           }),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       const mockInsert = vi.spyOn(db, 'insert')
-      let insertedValues: any
+      let insertedValues: Record<string, unknown>
 
       mockInsert.mockReturnValue({
         values: vi.fn().mockImplementation((vals) => {
           insertedValues = vals
           return Promise.resolve([])
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       const customSyncManager = new SquareSyncManager(
         mockSquareClient,
@@ -956,12 +954,12 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             }),
           }),
         }),
-      } as any)
+      } as Record<string, unknown>)
 
       const mockInsert = vi.spyOn(db, 'insert')
       mockInsert.mockReturnValue({
         values: vi.fn().mockResolvedValue([]),
-      } as any)
+      } as Record<string, unknown>)
 
       const result = await syncManager.syncTransactions(
         posConnectionId,
