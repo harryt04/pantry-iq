@@ -161,11 +161,11 @@ export default function DashboardPage() {
           return (
             <Card key={stat.label}>
               <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Icon className="text-primary h-5 w-5" />
                   <CardTitle className="text-sm font-medium">
                     {stat.label}
                   </CardTitle>
-                  <Icon className="text-muted-foreground h-4 w-4" />
                 </div>
               </CardHeader>
               <CardContent>
