@@ -343,11 +343,12 @@ export async function getForecast(
 
           try {
             await db.insert(weather).values({
-              locationId,
+              locationId: locationId as string,
               date: forecastDate.toISOString().split('T')[0],
-              temperature: day.temp.day,
+              temperature: day.temp.day?.toString() || null,
               conditions,
-              precipitation: precipitation > 0 ? precipitation : null,
+              precipitation:
+                precipitation > 0 ? precipitation.toString() : null,
             })
           } catch (insertError) {
             // Silently handle unique constraint violations

@@ -98,7 +98,7 @@ export async function PUT(
       )
     }
 
-    const updateData: Record<string, any> = {}
+    const updateData: Record<string, unknown> = {}
     if (name !== undefined) updateData.name = name
     if (zipCode !== undefined) updateData.zipCode = zipCode
     if (address !== undefined) updateData.address = address || null

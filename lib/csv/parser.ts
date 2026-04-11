@@ -96,9 +96,6 @@ export async function parseCSV(
       columns: true,
       skip_empty_lines: true,
       relax_column_count: true,
-      on_error: (error: { message: string }) => {
-        throw new Error(`CSV parsing error: ${error.message}`)
-      },
     }) as Array<Record<string, unknown>>
 
     // Extract headers from records
