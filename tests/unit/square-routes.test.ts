@@ -888,10 +888,7 @@ describe('Square Routes', () => {
       mockDatabaseMultipleResults([connection], [location])
 
       // Override the SquareSyncManager mock for this specific test
-      vi.mocked(SquareSyncManager).mockImplementation(function (
-        _client: Record<string, unknown>,
-        _locationId: string,
-      ) {
+      vi.mocked(SquareSyncManager).mockImplementation(function () {
         this.syncTransactions = vi
           .fn()
           .mockResolvedValue({ synced: 10, errors: 2 })
@@ -923,10 +920,7 @@ describe('Square Routes', () => {
       mockDatabaseMultipleResults([connection], [location])
 
       // Override the SquareSyncManager mock for this specific test
-      vi.mocked(SquareSyncManager).mockImplementation(function (
-        _client: Record<string, unknown>,
-        _locationId: string,
-      ) {
+      vi.mocked(SquareSyncManager).mockImplementation(function () {
         this.syncTransactions = vi
           .fn()
           .mockRejectedValue(new Error('Square API temporarily unavailable'))
@@ -960,10 +954,7 @@ describe('Square Routes', () => {
       mockSquareClient()
 
       // Reset SquareSyncManager to default implementation
-      vi.mocked(SquareSyncManager).mockImplementation(function (
-        _client: Record<string, unknown>,
-        _locationId: string,
-      ) {
+      vi.mocked(SquareSyncManager).mockImplementation(function () {
         this.syncTransactions = vi
           .fn()
           .mockResolvedValue({ synced: 5, errors: 0 })
