@@ -1,14 +1,46 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { getDonationOpportunities } from '@/lib/places/client'
 import { db } from '@/db'
-import { placesCache } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import type { MockedFunction } from 'vitest'
 
 // Mock database and fetch
 vi.mock('@/db')
 vi.mock('drizzle-orm')
 
 global.fetch = vi.fn()
+
+interface MockPlacesRecord {
+  id: string
+  locationId: string
+  orgName: string
+  address: string
+  phone: string
+  hours: string
+  types: string[]
+  cachedAt: Date
+}
+
+interface DbSelectBuilder {
+  from: (table: unknown) => DbWhereBuilder
+}
+
+interface DbWhereBuilder {
+  where: (condition: unknown) => Promise<MockPlacesRecord[]>
+}
+
+interface DbInsertBuilder {
+  values: (values: unknown) => Promise<void>
+}
+
+interface DbDeleteBuilder {
+  where: (condition: unknown) => Promise<void>
+}
+
+interface MockDb {
+  select: MockedFunction<() => DbSelectBuilder>
+  insert: MockedFunction<() => DbInsertBuilder>
+  delete: MockedFunction<() => DbDeleteBuilder>
+}
 
 describe('Places Client - getDonationOpportunities', () => {
   const locationId = '550e8400-e29b-41d4-a716-446655440000'
@@ -26,7 +58,7 @@ describe('Places Client - getDonationOpportunities', () => {
 
   describe('Cache hit - returns stored data', () => {
     it('should return cached data if fresh (less than 30 days old)', async () => {
-      const mockCachedData = [
+      const mockCachedData: MockPlacesRecord[] = [
         {
           id: '1',
           locationId,
@@ -54,7 +86,8 @@ describe('Places Client - getDonationOpportunities', () => {
       const mockFrom = vi.fn().mockReturnValue({
         where: mockWhere,
       })
-      ;(db.select as any).mockReturnValue({
+      const typedDb = db as unknown as MockDb
+      typedDb.select.mockReturnValue({
         from: mockFrom,
       })
 
@@ -86,18 +119,19 @@ describe('Places Client - getDonationOpportunities', () => {
       const mockFrom = vi.fn().mockReturnValue({
         where: mockWhere,
       })
-      ;(db.select as any).mockReturnValue({
+      const typedDb = db as unknown as MockDb
+      typedDb.select.mockReturnValue({
         from: mockFrom,
       })
 
       // Mock Google Places API to return empty results
-      ;(global.fetch as any).mockResolvedValue({
+      ;(global.fetch as MockedFunction<typeof fetch>).mockResolvedValue({
         ok: true,
         json: async () => ({
           status: 'ZERO_RESULTS',
           results: [],
         }),
-      })
+      } as Response)
 
       const result = await getDonationOpportunities(locationId, zipCode)
 
@@ -112,26 +146,27 @@ describe('Places Client - getDonationOpportunities', () => {
       const mockFrom = vi.fn().mockReturnValue({
         where: mockWhere,
       })
-      ;(db.select as any).mockReturnValue({
+      const typedDb = db as unknown as MockDb
+      typedDb.select.mockReturnValue({
         from: mockFrom,
       })
 
       // Mock database insert and delete
-      ;(db.insert as any).mockReturnValue({
+      typedDb.insert.mockReturnValue({
         values: vi.fn().mockResolvedValue(undefined),
       })
-      ;(db.delete as any).mockReturnValue({
+      typedDb.delete.mockReturnValue({
         where: vi.fn().mockResolvedValue(undefined),
       })
 
       // Mock Google Places API responses
-      ;(global.fetch as any).mockResolvedValue({
+      ;(global.fetch as MockedFunction<typeof fetch>).mockResolvedValue({
         ok: true,
         json: async () => ({
           status: 'ZERO_RESULTS',
           results: [],
         }),
-      })
+      } as Response)
 
       await getDonationOpportunities(locationId, zipCode)
 
@@ -144,7 +179,7 @@ describe('Places Client - getDonationOpportunities', () => {
     it('should refresh cache if older than 30 days', async () => {
       const staleDate = new Date(now.getTime() - 31 * 24 * 60 * 60 * 1000) // 31 days ago
 
-      const mockStaleCache = [
+      const mockStaleCache: MockPlacesRecord[] = [
         {
           id: '1',
           locationId,
@@ -162,28 +197,29 @@ describe('Places Client - getDonationOpportunities', () => {
       const mockFrom = vi.fn().mockReturnValue({
         where: mockWhere,
       })
-      ;(db.select as any).mockReturnValue({
+      const typedDb = db as unknown as MockDb
+      typedDb.select.mockReturnValue({
         from: mockFrom,
       })
 
       // Mock database delete
-      ;(db.delete as any).mockReturnValue({
+      typedDb.delete.mockReturnValue({
         where: vi.fn().mockResolvedValue(undefined),
       })
 
       // Mock database insert
-      ;(db.insert as any).mockReturnValue({
+      typedDb.insert.mockReturnValue({
         values: vi.fn().mockResolvedValue(undefined),
       })
 
       // Mock new API results
-      ;(global.fetch as any).mockResolvedValue({
+      ;(global.fetch as MockedFunction<typeof fetch>).mockResolvedValue({
         ok: true,
         json: async () => ({
           status: 'ZERO_RESULTS',
           results: [],
         }),
-      })
+      } as Response)
 
       await getDonationOpportunities(locationId, zipCode)
 
@@ -197,7 +233,7 @@ describe('Places Client - getDonationOpportunities', () => {
     it('should not refresh cache if fresher than 30 days', async () => {
       const freshDate = new Date(now.getTime() - 29 * 24 * 60 * 60 * 1000) // 29 days ago
 
-      const mockFreshCache = [
+      const mockFreshCache: MockPlacesRecord[] = [
         {
           id: '1',
           locationId,
@@ -215,7 +251,8 @@ describe('Places Client - getDonationOpportunities', () => {
       const mockFrom = vi.fn().mockReturnValue({
         where: mockWhere,
       })
-      ;(db.select as any).mockReturnValue({
+      const typedDb = db as unknown as MockDb
+      typedDb.select.mockReturnValue({
         from: mockFrom,
       })
 
@@ -240,12 +277,15 @@ describe('Places Client - getDonationOpportunities', () => {
       const mockFrom = vi.fn().mockReturnValue({
         where: mockWhere,
       })
-      ;(db.select as any).mockReturnValue({
+      const typedDb = db as unknown as MockDb
+      typedDb.select.mockReturnValue({
         from: mockFrom,
       })
 
       // Mock API error
-      ;(global.fetch as any).mockRejectedValue(new Error('Network error'))
+      ;(global.fetch as MockedFunction<typeof fetch>).mockRejectedValue(
+        new Error('Network error'),
+      )
 
       const result = await getDonationOpportunities(locationId, zipCode)
 
@@ -258,15 +298,16 @@ describe('Places Client - getDonationOpportunities', () => {
       const mockFrom = vi.fn().mockReturnValue({
         where: mockWhere,
       })
-      ;(db.select as any).mockReturnValue({
+      const typedDb = db as unknown as MockDb
+      typedDb.select.mockReturnValue({
         from: mockFrom,
       })
 
       // Mock API error response
-      ;(global.fetch as any).mockResolvedValue({
+      ;(global.fetch as MockedFunction<typeof fetch>).mockResolvedValue({
         ok: false,
         statusText: 'Unauthorized',
-      })
+      } as Response)
 
       const result = await getDonationOpportunities(locationId, zipCode)
 
@@ -281,7 +322,8 @@ describe('Places Client - getDonationOpportunities', () => {
       const mockFrom = vi.fn().mockReturnValue({
         where: mockWhere,
       })
-      ;(db.select as any).mockReturnValue({
+      const typedDb = db as unknown as MockDb
+      typedDb.select.mockReturnValue({
         from: mockFrom,
       })
 
@@ -298,16 +340,17 @@ describe('Places Client - getDonationOpportunities', () => {
       const mockFrom = vi.fn().mockReturnValue({
         where: mockWhere,
       })
-      ;(db.select as any).mockReturnValue({
+      const typedDb = db as unknown as MockDb
+      typedDb.select.mockReturnValue({
         from: mockFrom,
       })
-      ;(global.fetch as any).mockResolvedValue({
+      ;(global.fetch as MockedFunction<typeof fetch>).mockResolvedValue({
         ok: true,
         json: async () => ({
           status: 'ZERO_RESULTS',
           results: [],
         }),
-      })
+      } as Response)
 
       await getDonationOpportunities(locationId, zipCode)
 
@@ -315,8 +358,9 @@ describe('Places Client - getDonationOpportunities', () => {
       expect(global.fetch).toHaveBeenCalledTimes(3)
 
       // Verify each search query was included
-      const calls = (global.fetch as any).mock.calls
-      const queryParams = calls.map((call: any[]) =>
+      const typedFetch = global.fetch as MockedFunction<typeof fetch>
+      const calls = typedFetch.mock.calls
+      const queryParams = calls.map((call: Array<string>) =>
         new URL(call[0]).searchParams.get('query'),
       )
 

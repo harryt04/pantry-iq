@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate modelId if provided
-    let finalModelId = modelId || 'gemini-2.0-flash-lite'
+    const finalModelId = modelId || 'gemini-2.0-flash-lite'
     if (modelId) {
       try {
         getModel(modelId)
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
     const newConversation = await db
       .insert(conversations)
       .values({
-        locationId,
+        locationId: location[0].id,
         defaultModel: finalModelId,
       })
       .returning()

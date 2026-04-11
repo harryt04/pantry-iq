@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useSession } from '@/lib/auth-client'
 import { ConversationList } from './conversation-list'
-import { useRouter } from 'next/navigation'
 
 interface Conversation {
   id: string
@@ -19,7 +18,6 @@ interface Location {
 
 export function ConversationListContainer() {
   const { data: session } = useSession()
-  const router = useRouter()
   const [locations, setLocations] = useState<Location[]>([])
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(
     null,
@@ -64,10 +62,10 @@ export function ConversationListContainer() {
         if (!response.ok) throw new Error('Failed to fetch conversations')
         const data = await response.json()
         setConversations(
-          data.map((c: any) => ({
+          data.map((c: Record<string, unknown>) => ({
             ...c,
-            createdAt: new Date(c.createdAt),
-          })),
+            createdAt: new Date(c.createdAt as string),
+          })) as Conversation[],
         )
       } catch (err) {
         setError(

@@ -4,12 +4,13 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { Zero } from '@rocicorp/zero'
 import { getZeroClient, closeZeroClient } from '@/lib/zero'
 import { useSession } from '@/lib/auth-client'
+import type { Schema } from '@/lib/zero/schema'
 
 /**
  * ZeroContext provides access to the Zero client throughout the app
  */
 interface ZeroContextType {
-  client: Zero<any> | null
+  client: Zero<Schema> | null
   isConnected: boolean
   error: Error | null
   isInitializing: boolean
@@ -44,7 +45,7 @@ export function useZeroClient() {
  */
 export function ZeroProvider({ children }: { children: React.ReactNode }) {
   const { data: session, isPending: isSessionPending } = useSession()
-  const [client, setClient] = useState<Zero<any> | null>(null)
+  const [client, setClient] = useState<Zero<Schema> | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [error, setError] = useState<Error | null>(null)
   const [isInitializing, setIsInitializing] = useState(true)
@@ -57,9 +58,12 @@ export function ZeroProvider({ children }: { children: React.ReactNode }) {
 
     // Only initialize Zero for authenticated users
     if (!session?.user?.id) {
-      setIsInitializing(false)
-      setClient(null)
-      setIsConnected(false)
+      // Use state setter callback to avoid sync setState in effect
+      Promise.resolve().then(() => {
+        setIsInitializing(false)
+        setClient(null)
+        setIsConnected(false)
+      })
       return
     }
 

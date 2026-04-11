@@ -122,7 +122,6 @@ export function ChatInterface({
       setMessages((prev) => [...prev, assistantMessage])
 
       let buffer = ''
-      // eslint-disable-next-line no-constant-condition
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
@@ -155,7 +154,7 @@ export function ChatInterface({
                   return prev
                 })
               }
-            } catch (e) {
+            } catch {
               // Ignore parsing errors for non-JSON lines
             }
           }

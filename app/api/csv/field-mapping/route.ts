@@ -101,8 +101,12 @@ export async function POST(
       }
 
       // Get suggested mappings
+      interface FieldHeaders {
+        headers?: string[]
+      }
+      const mappingData = (upload.fieldMapping as FieldHeaders) || {}
       const suggestedMapping = await suggestMappings(
-        (upload.fieldMapping as any)?.headers || [],
+        mappingData.headers || [],
         sampleData,
       )
 
@@ -138,7 +142,7 @@ export async function POST(
     let fileBuffer: Buffer
     try {
       fileBuffer = await fs.readFile(filePath)
-    } catch (error) {
+    } catch {
       await db
         .update(csvUploads)
         .set({

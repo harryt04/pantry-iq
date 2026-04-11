@@ -85,9 +85,62 @@ export type Schema = typeof schema
  * These help with intellisense and type checking when building queries
  */
 
-export type Location = any
-export type Conversation = any
-export type Message = any
-export type CsvUpload = any
-export type Transaction = any
-export type PosConnection = any
+export interface Location {
+  id: string
+  userId: string
+  name: string
+  timezone: string
+  address: string
+  zipCode: string
+  type: string
+  createdAt: number
+}
+
+export interface Conversation {
+  id: string
+  locationId: string
+  defaultModel: string
+  createdAt: number
+}
+
+export interface Message {
+  id: string
+  conversationId: string
+  role: string
+  content: string
+  modelUsed: string
+  tokensIn: number
+  tokensOut: number
+  createdAt: number
+}
+
+export interface CsvUpload {
+  id: string
+  locationId: string
+  filename: string
+  rowCount: number
+  status: string
+  errorMessage: string
+  createdAt: number
+  completedAt: number
+}
+
+export interface Transaction {
+  id: string
+  locationId: string
+  squareTransactionId: string
+  amount: number
+  currency: string
+  status: string
+  createdAt: number
+}
+
+export interface PosConnection {
+  id: string
+  locationId: string
+  provider: string
+  externalId: string
+  status: string
+  lastSyncedAt: number
+  createdAt: number
+}

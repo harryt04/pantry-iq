@@ -62,7 +62,9 @@ test.describe('Zero Sync E2E', () => {
 
     // Record network timing - the query should resolve from local cache
     const navigationTiming = await page.evaluate(() => {
-      const navigation = performance.getEntriesByType('navigation')[0] as any
+      const navigation = performance.getEntriesByType(
+        'navigation',
+      )[0] as PerformanceNavigationTiming
       return {
         navigationStart: navigation.navigationStart,
         domContentLoaded: navigation.domContentLoaded,

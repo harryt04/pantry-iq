@@ -41,7 +41,7 @@ export function ChatInterfaceContainer({
       try {
         const { id } = await params
         setConversationId(id)
-      } catch (err) {
+      } catch {
         setError('Failed to load conversation')
       }
     }
@@ -72,8 +72,15 @@ export function ChatInterfaceContainer({
         if (!historyResponse.ok)
           throw new Error('Failed to fetch message history')
         const historyData = await historyResponse.json()
+        interface MessageData {
+          id: string
+          role: 'user' | 'assistant'
+          content: string
+          modelUsed?: string
+          createdAt: string
+        }
         setMessages(
-          historyData.map((m: any) => ({
+          (historyData as MessageData[]).map((m) => ({
             ...m,
             createdAt: new Date(m.createdAt),
           })),

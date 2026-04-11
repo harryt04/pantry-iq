@@ -3,10 +3,11 @@ import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { conversations, locations, messages } from '@/db/schema'
 import { eq } from 'drizzle-orm'
-import { streamText } from 'ai'
+import { streamText, type CoreMessage } from 'ai'
 import { openai } from '@ai-sdk/openai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { google } from '@ai-sdk/google'
+import type { LanguageModelV1 } from '@ai-sdk/provider'
 import { getModel } from '@/lib/ai/models'
 import { buildPromptWithContext } from '@/lib/ai/prompts'
 import { buildContextData } from '@/lib/ai/context-builder'
@@ -82,7 +83,7 @@ export async function POST(
     const modelConfig = getModel(conversation[0].defaultModel)
 
     // Get the appropriate model instance
-    let model: any
+    let model: LanguageModelV1
     switch (modelConfig.provider) {
       case 'openai':
         if (!process.env.OPENAI_API_KEY) {
@@ -119,7 +120,7 @@ export async function POST(
     const messageHistory = conversationHistory.map((m) => ({
       role: m.role as 'user' | 'assistant',
       content: m.content,
-    }))
+    })) as CoreMessage[]
 
     // Create the stream
     const result = streamText({
@@ -153,8 +154,15 @@ export async function POST(
           const finalUsage = await usage
 
           // Extract token counts - handle different possible property names
-          const tokensIn = (finalUsage as any)?.input || (finalUsage as any)?.inputTokens || 0
-          const tokensOut = (finalUsage as any)?.output || (finalUsage as any)?.outputTokens || 0
+          interface UsageData {
+            input?: number
+            inputTokens?: number
+            output?: number
+            outputTokens?: number
+          }
+          const usageData = finalUsage as UsageData
+          const tokensIn = usageData.input || usageData.inputTokens || 0
+          const tokensOut = usageData.output || usageData.outputTokens || 0
 
           // Persist the complete message
           await persistStreamedMessage({

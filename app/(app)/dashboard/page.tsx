@@ -38,20 +38,17 @@ interface PosConnection {
 }
 
 export default function DashboardPage() {
-  const { data: session, isPending: isSessionLoading } = useSession()
+  const { data: session, isPending: isSessionPending } = useSession()
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!session?.user) {
-      setIsLoading(false)
       return
     }
 
     const fetchDashboardData = async () => {
       try {
-        setIsLoading(true)
         const response = await fetch('/api/dashboard')
         if (!response.ok) {
           throw new Error('Failed to fetch dashboard data')
@@ -62,15 +59,13 @@ export default function DashboardPage() {
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred')
         console.error('Error fetching dashboard data:', err)
-      } finally {
-        setIsLoading(false)
       }
     }
 
     fetchDashboardData()
   }, [session?.user])
 
-  if (isSessionLoading) {
+  if (isSessionPending) {
     return (
       <div className="space-y-6">
         <div className="animate-pulse">

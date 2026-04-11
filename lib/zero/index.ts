@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Zero } from '@rocicorp/zero'
 import { schema } from './schema'
 import type {
@@ -8,16 +8,17 @@ import type {
   CsvUpload,
   Transaction,
   PosConnection,
+  Schema,
 } from './schema'
 
-let zeroClient: Zero<any> | null = null
-let zeroPromise: Promise<Zero<any>> | null = null
+let zeroClient: Zero<Schema> | null = null
+let zeroPromise: Promise<Zero<Schema>> | null = null
 
 /**
  * Initialize or retrieve the Zero client singleton
  * This ensures only one client connection exists per app lifecycle
  */
-export async function getZeroClient(userId: string): Promise<Zero<any>> {
+export async function getZeroClient(userId: string): Promise<Zero<Schema>> {
   // Return existing client if available
   if (zeroClient) {
     return zeroClient
@@ -46,19 +47,24 @@ export async function getZeroClient(userId: string): Promise<Zero<any>> {
             reject(new Error('Zero connection timeout'))
           }, 10000)
 
-          const unsubscribe = (client.connection.state as any).subscribe(
-            (state: any) => {
-              if (state === 'open') {
-                clearTimeout(timeout)
-                unsubscribe()
-                resolve()
-              }
-            },
-          )
+          interface ConnectionStateSubscription {
+            subscribe: (
+              callback: (state: { name: string; reason?: string }) => void,
+            ) => () => void
+          }
+          const connectionState = client.connection
+            .state as ConnectionStateSubscription
+          const unsubscribe = connectionState.subscribe((state) => {
+            if (state.name === 'open') {
+              clearTimeout(timeout)
+              unsubscribe()
+              resolve()
+            }
+          })
         })
-      } catch (err) {
+      } catch {
         // Connection timeout or error - continue anyway with cached data
-        console.warn('Zero connection failed, will use cached data:', err)
+        console.warn('Zero connection failed, will use cached data')
       }
 
       zeroClient = client
@@ -77,7 +83,7 @@ export async function getZeroClient(userId: string): Promise<Zero<any>> {
 /**
  * Get the current Zero client or null if not initialized
  */
-export function getZeroClientSync(): Zero<any> | null {
+export function getZeroClientSync(): Zero<Schema> | null {
   return zeroClient
 }
 
@@ -88,7 +94,7 @@ export async function closeZeroClient(): Promise<void> {
   if (zeroClient) {
     try {
       await zeroClient.close()
-    } catch (e) {
+    } catch {
       // Ignore errors during close
     }
     zeroClient = null
@@ -99,7 +105,7 @@ export async function closeZeroClient(): Promise<void> {
  * Hook to use Zero client with auto-initialization for authenticated users
  */
 export function useZero() {
-  const [client, setClient] = useState<Zero<any> | null>(null)
+  const [client, setClient] = useState<Zero<Schema> | null>(null)
   const [error, setError] = useState<Error | null>(null)
   const [isConnected, setIsConnected] = useState(false)
 
@@ -129,7 +135,7 @@ export function useZero() {
  * Note: This is a stub implementation. Use REST API instead for real data.
  */
 export function useLocations(
-  client: Zero<any> | null | undefined,
+  client: Zero<Schema> | null | undefined,
   enabled: boolean = true,
 ) {
   const [locations, setLocations] = useState<Location[]>([])
@@ -144,7 +150,7 @@ export function useLocations(
  * Note: This is a stub implementation. Use REST API instead for real data.
  */
 export function useConversations(
-  client: Zero<any> | null | undefined,
+  client: Zero<Schema> | null | undefined,
   locationId: string | null,
   enabled: boolean = true,
 ) {
@@ -160,7 +166,7 @@ export function useConversations(
  * Note: This is a stub implementation. Use REST API instead for real data.
  */
 export function useMessages(
-  client: Zero<any> | null | undefined,
+  client: Zero<Schema> | null | undefined,
   conversationId: string | null,
   enabled: boolean = true,
 ) {
@@ -176,7 +182,7 @@ export function useMessages(
  * Note: This is a stub implementation. Use REST API instead for real data.
  */
 export function useCsvUploads(
-  client: Zero<any> | null | undefined,
+  client: Zero<Schema> | null | undefined,
   locationId: string | null,
   enabled: boolean = true,
 ) {
@@ -192,7 +198,7 @@ export function useCsvUploads(
  * Note: This is a stub implementation. Use REST API instead for real data.
  */
 export function useTransactions(
-  client: Zero<any> | null | undefined,
+  client: Zero<Schema> | null | undefined,
   locationId: string | null,
   enabled: boolean = true,
 ) {
@@ -208,7 +214,7 @@ export function useTransactions(
  * Note: This is a stub implementation. Use REST API instead for real data.
  */
 export function usePosConnections(
-  client: Zero<any> | null | undefined,
+  client: Zero<Schema> | null | undefined,
   locationId: string | null,
   enabled: boolean = true,
 ) {
