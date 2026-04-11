@@ -17,7 +17,6 @@ Help coordinate the transfer of food that would otherwise be wasted to be given 
 
 1. Bootstrap the company on our own dime as long as possible. VC money is preferably avoidable at all costs.
 2. I don't expect to be financially compensated from this business until any one of us is compensated. I'd prefer instead to take an equity share of the business in exchange for my time being the primary product architect/builder.
-
    1. Upon delivery of version 1 of the application, if the business chooses to go to market with it, I would then receive our agreed upon equity share.
       1. If you choose not to use my code, my code is still my own and I will receive no compensation for it.
    2. I personally believe equal third partners 33% is fair here.
@@ -26,7 +25,6 @@ Help coordinate the transfer of food that would otherwise be wasted to be given 
       2. Web hosting fees
       3. My hope is that the business would be self-sustaining from day one of collecting revenue, and we have priced our product appropriately such that we are not taking a loss on each customer's AI usage. From then on, my hope is that we'd each only have to further invest our time, not our personal money, into the business.
    4. I think the title of CTO, Chief Technology Officer is appropriate in how I would view my role. If there is an executive decision to be made about the technology usage of our company, I reserve the right to make that decision. **My role would be to**
-
       1. Answer/define 'how' we build our app(s)
       2. Be responsible for the uptime and quality of our application(s)
       3. Be responsible for fixing defects
@@ -48,7 +46,6 @@ Help coordinate the transfer of food that would otherwise be wasted to be given 
    1. Square
    2. Cisco
 2. Based on transaction history, an AI predicts market trends based on prompts from the user. I.e.
-
    1. “Which days do I regularly overstaff?”
    2. “What shifts could I safely run lean?”
    3. “What days _feel slow_ but actually aren’t?”
@@ -129,13 +126,11 @@ Pricing model options (dollar amounts and numbers are examples, actual math will
 
 1. 7 day free trial, then either
 2. Approach \#1, Simple, straight forward
-
    1. $20 / restaurant location / month
    2. $10 / food truck / month
    3. Subscription tiers based on features included (after v2 is launched)
 
 3. Approach \#2, complicated but protects us from overage fees better
-
    1. $20 / month for X amount of AI credits \+ overage fees
       1. up to 3 locations/trucks and logins
    2. $100 / month for 10X amount of AI credits \+ overage fees

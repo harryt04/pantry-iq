@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'PantryIQ',
   description:
-    'Stop over-ordering. Reduce spoilage. Increase profits. Our restaurant forecasting software minimizes food waste and helps donate surplus to those in need.',
+    'PantryIQ uses AI to help restaurants reduce food waste by analyzing transaction data and answering questions about staffing, inventory, menu optimization, and donation opportunities.',
   manifest: '/site.webmanifest',
 }
 

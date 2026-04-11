@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1775881447000,
+      "tag": "0001_pantry_iq_mvp_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775889134620,
+      "tag": "0002_jittery_shocker",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1775896800000,
+      "tag": "0003_fix_zero_schema_types",
+      "breakpoints": true
+    }
+  ]
+}

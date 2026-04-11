@@ -55,6 +55,14 @@ PantryIQ is a bootstrapped SaaS platform that tackles restaurant food waste thro
 - **Location Management** - Multiple locations per account with per-location model preferences
 - **User Settings** - Account, password, and subscription management
 
+### Error Handling & Loading States
+
+- **Global Error Boundary** - Catches unhandled errors with user-friendly messages and retry options
+- **Loading Skeletons** - Visual placeholder UI with animations during data fetches
+- **Consistent API Errors** - All API errors return `{ error: "message", code: "ERROR_CODE" }` format
+- **Security** - Stack traces logged server-side only; clients never receive internal details
+- **Error Codes** - 20+ descriptive error codes for debugging (authentication, validation, server errors)
+
 ## 📡 API Integrations
 
 | Service               | Purpose                                                                |
@@ -92,6 +100,73 @@ Starts:
 - `/components` - React components (marketing + app UI)
 - `/lib` - Utilities and helpers
 - `/public` - Static assets
+
+## 🚨 Error Handling
+
+### Architecture
+
+PantryIQ includes enterprise-grade error handling with:
+
+- **Global Error Boundary** - `app/(app)/error.tsx` catches unhandled errors in authenticated routes
+- **Loading States** - `app/(app)/loading.tsx` with skeleton loaders during data fetches
+- **API Error Utility** - `lib/api-error.ts` provides consistent error responses
+- **Safe Logging** - Stack traces logged server-side; clients receive generic messages with codes
+- **20+ Error Codes** - Specific codes for authentication, validation, and server errors
+
+### Error Response Format
+
+All API errors follow the standard format:
+
+```json
+{
+  "error": "User-friendly message",
+  "code": "ERROR_CODE"
+}
+```
+
+### HTTP Status Codes
+
+- **400** - Bad Request (validation errors, missing fields, invalid JSON)
+- **401** - Unauthorized (not authenticated)
+- **403** - Forbidden (authenticated but not authorized)
+- **404** - Not Found (resource doesn't exist)
+- **500** - Internal Server Error (unexpected errors)
+
+### Testing Error Handling
+
+Comprehensive E2E tests validate all error scenarios:
+
+```bash
+# Run error handling tests
+npm run test:e2e -- error-handling.spec.ts
+
+# Run all tests
+npm run test
+```
+
+### Using Error Handling in API Routes
+
+```typescript
+import { ApiError, logErrorSafely } from '@/lib/api-error'
+
+export async function POST(req) {
+  try {
+    const session = await getServerSession()
+
+    if (!session?.user) {
+      return ApiError.unauthorized('Auth required', 'NOT_AUTHENTICATED')
+    }
+
+    // ... implement logic
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    const message = logErrorSafely(error, 'POST /api/endpoint')
+    return ApiError.internalServerError(message, 'ENDPOINT_ERROR')
+  }
+}
+```
+
+---
 
 ## 📊 Database Schema
 
@@ -171,6 +246,7 @@ Starts:
 - OAuth tokens encrypted at rest
 - No PII in logs
 - Firewall rules: allow 80/443, block SSH brute-force
+- **Error Security:** Stack traces logged server-side only; clients receive generic messages with error codes
 
 ## 📚 Documentation
 
