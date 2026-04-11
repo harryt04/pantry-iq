@@ -6,18 +6,26 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Check } from 'lucide-react'
+import { Check, AlertCircle } from 'lucide-react'
 
 export default function PricingPage() {
   return (
     <div className="bg-background min-h-screen">
       <div className="container mx-auto px-4 py-20">
         <div className="mb-12 text-center">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-2 text-sm font-medium text-amber-900 dark:bg-amber-900 dark:text-amber-100">
+            <AlertCircle className="h-4 w-4" />
+            Beta Experience
+          </div>
           <h1 className="mb-4 text-4xl font-bold tracking-tight md:text-5xl">
             Simple, Transparent Pricing
           </h1>
           <p className="text-muted-foreground text-xl">
             Choose the plan that works best for your restaurant
+          </p>
+          <p className="text-muted-foreground mt-4 text-sm">
+            Pricing shown below reflects our current beta offering and may
+            change at official launch.
           </p>
         </div>
 

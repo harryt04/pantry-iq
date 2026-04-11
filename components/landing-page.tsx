@@ -77,10 +77,20 @@ export function LandingPage() {
           </div>
           <div className="flex items-center gap-3">
             <Button variant="ghost" asChild>
-              <Link href="/login">Login</Link>
+              <Link href="/login" className="flex items-center gap-2">
+                Login
+                <span className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900 dark:bg-amber-900 dark:text-amber-100">
+                  Beta
+                </span>
+              </Link>
             </Button>
             <Button asChild>
-              <Link href="/signup">Sign Up</Link>
+              <Link href="/signup" className="flex items-center gap-2">
+                Sign Up
+                <span className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900 dark:bg-amber-900 dark:text-amber-100">
+                  Beta
+                </span>
+              </Link>
             </Button>
           </div>
         </div>
@@ -302,9 +312,18 @@ export function LandingPage() {
           <h2 className="mb-4 text-center text-3xl font-bold md:text-4xl">
             Simple, Transparent Pricing
           </h2>
-          <p className="text-muted-foreground mx-auto mb-12 max-w-2xl text-center text-lg">
+          <p className="text-muted-foreground mx-auto mb-8 max-w-2xl text-center text-lg">
             Start with a free trial. No credit card required.
           </p>
+          <div className="mb-12 text-center">
+            <span className="inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900 dark:bg-amber-900 dark:text-amber-100">
+              Beta Pricing
+            </span>
+            <p className="text-muted-foreground mt-3 text-sm">
+              These prices reflect our current beta offering and may change at
+              launch.
+            </p>
+          </div>
           <div className="mx-auto grid max-w-3xl gap-8 md:grid-cols-2">
             <Card className="relative">
               <CardHeader>
