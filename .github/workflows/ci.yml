@@ -13,7 +13,6 @@ concurrency:
 
 env:
   NODE_VERSION: '20'
-  # Stub env vars required for build / tests (no real secrets needed for CI)
   DATABASE_URL: postgres://postgres:postgres@localhost:5432/pantryiq
   ZERO_UPSTREAM_DB: postgres://postgres:postgres@localhost:5432/pantryiq
   ZERO_PORT: '8001'
@@ -27,13 +26,26 @@ env:
   ANTHROPIC_API_KEY: stub
   GOOGLE_GENERATIVE_AI_API_KEY: stub
 
-# ─────────────────────────────────────────────
-# Job 1: Lint & type-check (fast, no DB needed)
-# ─────────────────────────────────────────────
 jobs:
-  lint:
-    name: Lint & Type-check
+  ci:
+    name: CI
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: pantryiq
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -45,6 +57,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # ── Lint ─────────────────────────────────
       - name: Prettier check
         run: npx prettier --check .
 
@@ -54,67 +67,25 @@ jobs:
       - name: TypeScript type-check
         run: npx tsc --noEmit
 
-  # ─────────────────────────────────────────────
-  # Job 2: Build
-  # ─────────────────────────────────────────────
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
+      # ── Build ────────────────────────────────
       - name: Build
         run: npm run build
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: next-build
-          path: .next/
-          retention-days: 1
+      # ── Unit tests ───────────────────────────
+      - name: Unit tests
+        run: npm run test:unit
 
-  # ─────────────────────────────────────────────
-  # Job 3: Unit tests
-  # ─────────────────────────────────────────────
-  unit-tests:
-    name: Unit Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+      # ── E2E tests (sharded) ──────────────────
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+      - name: Run database migrations
+        run: npm run db:migrate
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run unit tests with coverage
-        run: npm run test:coverage
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage/
-          retention-days: 7
-
-  # ─────────────────────────────────────────────
-  # Job 4: E2E tests (sharded across 4 runners)
-  # ─────────────────────────────────────────────
-  e2e-tests:
+  e2e:
     name: E2E (${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: ubuntu-latest
-    needs: [lint, build]
+    needs: ci
     strategy:
       fail-fast: false
       matrix:
@@ -146,19 +117,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright browsers (chromium only for speed)
+      - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
+
+      - name: Build
+        run: npm run build
 
       - name: Run database migrations
         run: npm run db:migrate
 
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: next-build
-          path: .next/
-
-      - name: Run E2E tests (shard ${{ matrix.shard }}/${{ strategy.job-total }})
+      - name: E2E tests (shard ${{ matrix.shard }}/${{ strategy.job-total }})
         run: npx playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }}
         env:
           CI: true
@@ -171,13 +139,10 @@ jobs:
           path: blob-report/
           retention-days: 1
 
-  # ─────────────────────────────────────────────
-  # Job 5: Merge Playwright reports
-  # ─────────────────────────────────────────────
   e2e-report:
     name: Merge E2E Reports
     runs-on: ubuntu-latest
-    needs: e2e-tests
+    needs: e2e
     if: always()
     steps:
       - uses: actions/checkout@v4
