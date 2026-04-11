@@ -253,9 +253,12 @@ export function FieldMappingUI({
                     {header}
                   </Label>
                   <Select
-                    value={mapping[header] || ''}
+                    value={mapping[header] || 'skip'}
                     onValueChange={(value) =>
-                      handleMappingChange(header, value === '' ? null : value)
+                      handleMappingChange(
+                        header,
+                        value === 'skip' ? null : value,
+                      )
                     }
                   >
                     <SelectTrigger id={`field-${header}`}>
@@ -265,7 +268,7 @@ export function FieldMappingUI({
                       {STANDARD_FIELD_OPTIONS.map((opt) => (
                         <SelectItem
                           key={opt.value || 'skip'}
-                          value={opt.value || ''}
+                          value={opt.value || 'skip'}
                         >
                           {opt.label}
                         </SelectItem>

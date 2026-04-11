@@ -58,7 +58,7 @@ describe('Places Client - getDonationOpportunities', () => {
 
   describe('Cache hit - returns stored data', () => {
     it('should return cached data if fresh (less than 30 days old)', async () => {
-      const mockCachedData: MockPlacesRecord[] = [
+      const mockCachedData: any[] = [
         {
           id: '1',
           locationId,
@@ -66,7 +66,7 @@ describe('Places Client - getDonationOpportunities', () => {
           address: '123 Main St, New York, NY 10001',
           phone: '(212) 555-0123',
           hours: 'Mon-Fri: 9AM-5PM',
-          types: ['food_pantry', 'charity'],
+          types: JSON.stringify(['food_pantry', 'charity']),
           cachedAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
         },
         {
@@ -76,7 +76,7 @@ describe('Places Client - getDonationOpportunities', () => {
           address: '456 Park Ave, New York, NY 10001',
           phone: '(212) 555-0456',
           hours: 'Daily: 11AM-3PM',
-          types: ['soup_kitchen', 'food_service'],
+          types: JSON.stringify(['soup_kitchen', 'food_service']),
           cachedAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
         },
       ]
@@ -233,7 +233,7 @@ describe('Places Client - getDonationOpportunities', () => {
     it('should not refresh cache if fresher than 30 days', async () => {
       const freshDate = new Date(now.getTime() - 29 * 24 * 60 * 60 * 1000) // 29 days ago
 
-      const mockFreshCache: MockPlacesRecord[] = [
+      const mockFreshCache: any[] = [
         {
           id: '1',
           locationId,
@@ -241,7 +241,7 @@ describe('Places Client - getDonationOpportunities', () => {
           address: 'Fresh Address',
           phone: 'Fresh Phone',
           hours: 'Fresh Hours',
-          types: ['food_bank'],
+          types: JSON.stringify(['food_bank']),
           cachedAt: freshDate,
         },
       ]

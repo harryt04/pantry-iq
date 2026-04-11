@@ -3,6 +3,10 @@ import { NextRequest } from 'next/server'
 import { POST } from '@/app/api/csv/upload/route'
 
 vi.mock('fs/promises', () => ({
+  default: {
+    mkdir: vi.fn().mockResolvedValue(undefined),
+    writeFile: vi.fn().mockResolvedValue(undefined),
+  },
   mkdir: vi.fn().mockResolvedValue(undefined),
   writeFile: vi.fn().mockResolvedValue(undefined),
 }))
@@ -36,10 +40,10 @@ describe('Debug', () => {
 
     const response = await POST(request)
     const body = await response.json()
-    
+
     console.log('Status:', response.status)
     console.log('Error:', body.error)
-    
+
     expect(response.status).toBe(400)
   })
 })
