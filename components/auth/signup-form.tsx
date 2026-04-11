@@ -12,12 +12,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
 import { authClient } from '@/lib/auth-client'
 
 export function SignupForm() {
   const router = useRouter()
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -39,7 +39,12 @@ export function SignupForm() {
   }
 
   const validateForm = (): boolean => {
-    if (!formData.email || !formData.password || !formData.confirmPassword) {
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
       setValidationError('All fields are required')
       return false
     }
@@ -78,7 +83,7 @@ export function SignupForm() {
       const result = await authClient.signUp.email({
         email: formData.email,
         password: formData.password,
-        name: formData.email.split('@')[0], // Use email prefix as default name
+        name: formData.name,
       })
 
       if (result.error) {
@@ -116,7 +121,7 @@ export function SignupForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div
-              className="rounded-md bg-destructive/10 p-3 text-sm text-destructive"
+              className="bg-destructive/10 text-destructive rounded-md p-3 text-sm"
               role="alert"
             >
               {error}
@@ -133,7 +138,25 @@ export function SignupForm() {
           )}
 
           <div className="space-y-1.5">
-            <Label htmlFor="email">Email</Label>
+            <label htmlFor="name" className="text-sm font-medium">
+              Name
+            </label>
+            <Input
+              id="name"
+              type="text"
+              name="name"
+              placeholder="Your Name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="text-sm font-medium">
+              Email
+            </label>
             <Input
               id="email"
               type="email"
@@ -147,7 +170,9 @@ export function SignupForm() {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="password">Password</Label>
+            <label htmlFor="password" className="text-sm font-medium">
+              Password
+            </label>
             <Input
               id="password"
               type="password"
@@ -158,13 +183,15 @@ export function SignupForm() {
               required
               disabled={isLoading}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               At least 8 characters
             </p>
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <label htmlFor="confirmPassword" className="text-sm font-medium">
+              Confirm Password
+            </label>
             <Input
               id="confirmPassword"
               type="password"
