@@ -391,6 +391,167 @@ NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 - **Transactions:** Optimistic updates on client, server validation
 - **Files:** `lib/zero/index.ts` (client setup), `lib/zero/permissions.ts` (server permissions)
 
+#### Architecture Diagram
+
+Real-time data synchronization flows from browser client → Zero cache server → PostgreSQL:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Browser (Client)                          │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  React App (Next.js)                                 │   │
+│  │  ├─ ZeroProvider (Context)                           │   │
+│  │  ├─ useZeroClient() hooks                            │   │
+│  │  ├─ useConversations(), useMessages(), etc.          │   │
+│  │  └─ REST API fallback                                │   │
+│  ├──────────────────────────────────────────────────────┤   │
+│  │  Zero Client (@rocicorp/zero)                        │   │
+│  │  ├─ Local SQLite Cache                               │   │
+│  │  ├─ Real-time sync                                   │   │
+│  │  └─ Offline support                                  │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                        │                                      │
+└────────────────────────┼──────────────────────────────────────┘
+                         │
+                      HTTP
+                         │
+         ┌───────────────┴────────────────┐
+         │                                │
+┌────────▼────────┐          ┌───────────▼──────────┐
+│  Zero Cache     │          │  REST API Fallback   │
+│  Server         │          │  (/api/*)            │
+│  (port 8001)    │          │  (for compatibility) │
+└────────┬────────┘          └──────────────────────┘
+         │
+    ┌────▼─────────────────────┐
+    │   Postgres Database       │
+    │  (pantryiq database)      │
+    │  ├─ locations            │
+    │  ├─ conversations        │
+    │  ├─ messages             │
+    │  ├─ transactions         │
+    │  ├─ csv_uploads          │
+    │  └─ pos_connections      │
+    └──────────────────────────┘
+```
+
+#### Docker Compose Configuration
+
+PostgreSQL **must** have `wal_level=logical` enabled for Zero to stream changes via logical replication:
+
+```yaml
+services:
+  postgres:
+    image: postgres:18-alpine
+    command:
+      - 'postgres'
+      - '-c'
+      - 'wal_level=logical' # Required for Zero streaming replication
+    environment:
+      POSTGRES_DB: pantryiq
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+
+  zero:
+    image: rocicorp/zero:latest
+    ports:
+      - '8001:8001'
+    environment:
+      ZERO_UPSTREAM_DB: postgres://postgres:postgres@postgres:5432/pantryiq
+      ZERO_PORT: 8001
+    depends_on:
+      postgres:
+        condition: service_healthy
+```
+
+**Critical**: Without `wal_level=logical`, Zero cannot detect changes in Postgres and replication will fail.
+
+#### Read vs Write Data Flow
+
+**Read Path (Query)**:
+
+1. Component calls `useConversations(client, locationId)`
+2. Hook subscribes to Zero query: `client.conversations.watch({ locationId })`
+3. Zero checks local SQLite cache
+4. Returns cached data immediately (<100ms) and syncs server data in background
+5. If data missing, fetches from Zero cache server, stores in cache, returns to component
+
+**Write Path (Create/Update)**:
+
+1. Component sends request to REST API: `POST /api/conversations`
+2. Server validates and updates PostgreSQL
+3. Zero cache server detects change via logical replication
+4. Sends update to all connected clients
+5. Clients update local cache automatically
+6. Components re-render with new data
+
+**Key**: Zero does not support direct client-side writes. All writes must go through REST API to enforce server-side authorization and business logic.
+
+#### Row-Level Security Hierarchy
+
+Zero enforces hierarchical row-level security with three levels:
+
+**1. User → Locations**
+- User can only access locations where `location.userId === session.user.id`
+- Filter: `user.locations` returns only user's own locations
+
+**2. Location → Conversations**
+- User can only access conversations in their locations
+- Filter: `location.conversations` filtered by user's location IDs
+- Cross-user access impossible: User A cannot see User B's conversations
+
+**3. Conversation → Messages**
+- User can only access messages in their conversations
+- Filter: `conversation.messages` filtered by user's conversation IDs
+- Multi-user threads: Messages grouped by user access level
+
+#### Graceful Fallback Pattern
+
+If Zero cache server becomes unavailable:
+
+1. `getZeroClient()` catches connection error and logs it
+2. `ZeroProvider` continues initialization and passes `client: null` to context
+3. Hooks like `useConversations()` detect null client and fall back to REST API
+4. `fetch('/api/conversations?locationId=...')` provides data with higher latency (~500ms vs <100ms)
+5. App continues to work without degraded user experience
+
+#### Troubleshooting Checklist
+
+**"Cannot connect to Zero cache server"**
+
+- [ ] Verify Zero is running: `curl http://localhost:8001/health` (should return `{"status":"ok"}`)
+- [ ] Check env var: `NEXT_PUBLIC_ZERO_URL=http://localhost:8001` is set
+- [ ] Verify Docker network: `docker network ls` and `docker ps`
+- [ ] Check Zero logs: `docker-compose logs zero`
+
+**"Permission denied" errors in browser console**
+
+- [ ] Verify user is authenticated: Check `session.user.id` is set
+- [ ] Confirm user owns location: `SELECT * FROM locations WHERE id = ? AND user_id = ?`
+- [ ] Review filter logic in `useConversations()` and `useMessages()` hooks
+- [ ] Check row-level security rules in `lib/zero/permissions.ts`
+
+**"Data not syncing" between Zero and Postgres**
+
+- [ ] **Critical**: Check `wal_level=logical` is enabled: Run `SHOW wal_level;` in psql
+- [ ] Verify Zero has Postgres connection: Check `docker-compose logs zero` for connection errors
+- [ ] Check replication slots exist: `SELECT * FROM pg_replication_slots;` should show Zero slot
+- [ ] Verify Postgres `pg_stat_replication` shows active replication: `SELECT * FROM pg_stat_replication;`
+
+**"Zero client not initializing" (client is always null)**
+
+- [ ] Ensure user is authenticated before ZeroProvider mounts
+- [ ] Check browser console for network errors connecting to `localhost:8001`
+- [ ] Enable debug logging: Set `debug: true` in `lib/zero/index.ts` Zero client init
+- [ ] Verify `NEXT_PUBLIC_ZERO_URL` is accessible from browser (may fail if behind firewall/proxy)
+
+**"Local cache empty" or queries return no results**
+
+- [ ] Check subscription is working: In browser DevTools, filter Network for `localhost:8001` requests
+- [ ] Verify user has data in Postgres: Query `SELECT * FROM conversations WHERE user_id = ?`
+- [ ] Confirm permission filter is not too restrictive: Review `getConversationPermissionFilter()` logic
+- [ ] Clear browser local storage and reload: Stale cache can cause issues
+
 ### LLM Integration (Vercel AI SDK)
 
 - **Library:** Vercel AI SDK (`ai` package)
@@ -502,7 +663,158 @@ npm run test:e2e -- error-handling.spec.ts
 PWDEBUG=1 npm run test:e2e  # Debug mode
 ```
 
----
+### Advanced Mocking Patterns (Drizzle ORM & API Routes)
+
+When testing complex API routes with database interactions, use these proven mocking patterns:
+
+#### Drizzle Query Chain Mocking
+
+The database mock must properly implement the thenable interface and all chainable methods to support async/await:
+
+```typescript
+function createMockDatabaseChain(result: any[] | null = null) {
+  const resolvedResult = result || []
+
+  const queryChain: any = {
+    then: undefined,
+    catch: undefined,
+    finally: undefined,
+  }
+
+  // Add all chainable methods
+  queryChain.from = vi.fn().mockReturnValue(queryChain)
+  queryChain.where = vi.fn().mockReturnValue(queryChain)
+  queryChain.limit = vi.fn().mockReturnValue(queryChain)
+  queryChain.returning = vi.fn().mockReturnValue(queryChain)
+  queryChain.set = vi.fn().mockReturnValue(queryChain)
+  queryChain.values = vi.fn().mockReturnValue(queryChain)
+
+  // Make it thenable
+  queryChain.then = function (onFulfilled?: any, onRejected?: any) {
+    return Promise.resolve(resolvedResult).then(onFulfilled, onRejected)
+  }
+  queryChain.catch = function (onRejected?: any) {
+    return Promise.resolve(resolvedResult).catch(onRejected)
+  }
+  queryChain.finally = function (onFinally?: any) {
+    return Promise.resolve(resolvedResult).finally(onFinally)
+  }
+  queryChain[Symbol.toStringTag] = 'Promise'
+
+  return queryChain
+}
+```
+
+#### Sequential Database Call Mocking
+
+Routes often make multiple `db.select()` calls with different results. Use this pattern:
+
+```typescript
+function mockDatabaseMultipleResults(...results: (any[] | null)[]) {
+  let callIndex = 0
+  const chains = results.map((r) => createMockDatabaseChain(r))
+
+  vi.mocked(db.select).mockImplementation(() => {
+    const chain = chains[callIndex]
+    callIndex++
+    return chain as any
+  })
+
+  return chains
+}
+
+// Usage: First db.select() returns [connection], second returns [location]
+mockDatabaseMultipleResults([connection], [location])
+```
+
+#### Constructor Function Mocking
+
+When mocking classes instantiated with `new`, use function constructor syntax:
+
+```typescript
+vi.mock('@/lib/square/sync', () => ({
+  SquareSyncManager: vi.fn(function (client: any, locationId: string) {
+    this.syncTransactions = vi
+      .fn()
+      .mockResolvedValue({ synced: 5, errors: 0 })
+  }),
+}))
+```
+
+### Test Data Generation
+
+Generate realistic CSV test data with the test data generation CLI:
+
+#### Quick Start
+
+```bash
+# Generate 100 transactions to stdout
+npm run generate:test-csv -- --records 100 --type transactions
+
+# Generate 500 inventory items to file
+npm run generate:test-csv -- --records 500 --type inventory --output my-inventory.csv
+
+# Generate invoices for Q1 2024
+npm run generate:test-csv -- \
+  --records 200 \
+  --type invoices \
+  --start-date 2024-01-01 \
+  --end-date 2024-03-31 \
+  --output invoices.csv
+```
+
+#### CLI Reference
+
+**Script Location:** `scripts/generate-test-csv.ts`
+
+**Usage:**
+```bash
+npm run generate:test-csv -- [options]
+```
+
+**Options:**
+
+| Option         | Format                            | Default      | Description                    |
+| -------------- | --------------------------------- | ------------ | ------------------------------ |
+| `--records`    | NUMBER                            | 100          | Number of records to generate  |
+| `--start-date` | YYYY-MM-DD                        | 1 year ago   | Start date for data generation |
+| `--end-date`   | YYYY-MM-DD                        | today        | End date for data generation   |
+| `--type`       | transactions\|inventory\|invoices | transactions | Type of data to generate       |
+| `--output`     | FILE_PATH                         | stdout       | Output file path               |
+
+#### Data Types
+
+**Transactions** - Daily sales data with columns: Date, Time, Item Name, Quantity, Unit Price, Unit Cost, Total Revenue, Total Cost, Payment Method, Location
+
+**Inventory** - Stock levels with columns: SKU, Item Name, Category, Quantity, Unit Cost, Total Value, Reorder Point, Supplier, Last Restock
+
+**Invoices** - Vendor invoices with columns: Invoice Number, Vendor, Invoice Date, Due Date, Subtotal, Tax, Total Amount, Amount Paid, Status
+
+#### Pre-Generated Fixtures
+
+Pre-generated fixture files are available:
+
+```bash
+tests/fixtures/sample-transactions.csv   # 150 transaction records
+tests/fixtures/sample-inventory.csv      # 120 inventory records
+tests/fixtures/sample-vendor-invoices.csv  # 100 invoice records
+```
+
+Use directly in tests without generating new data:
+
+```typescript
+import * as fs from 'fs'
+import { parseCSV } from '@/lib/csv-parser'
+
+const txnContent = fs.readFileSync(
+  'tests/fixtures/sample-transactions.csv',
+  'utf-8',
+)
+const parsed = parseCSV(txnContent)
+console.log(`Testing with ${parsed.rows.length} transactions`)
+```
+
+
 
 ## Build & Deployment
 
@@ -614,11 +926,105 @@ Same as `.env` but with production values:
 
 ### PostHog Integration
 
-- **Client-side:** `providers/posthogProvider.tsx` (production-only wrapper)
-- **Server-side:** `lib/posthog-server.ts` (singleton)
-- **Initialization:** `instrumentation-client.ts` (Next.js 16 instrumentation, production-only)
-- **Reverse proxy:** `/ph/*` → `https://us.i.posthog.com/` (configured in `next.config.ts`)
-- **Events:** waitlist-form-focused, waitlist-form-submitted, early-access-link-clicked, feature-card-viewed, pricing-card-viewed, launch-signup
+PostHog analytics is integrated throughout the application user journey with production-only event tracking. All events follow strict PII protection rules.
+
+#### Core Utilities
+
+**File:** `lib/analytics-utils.ts`
+
+Two core functions handle all event tracking:
+
+1. **`captureAnalyticsEvent(eventName, properties)`**
+   - Non-blocking, production-only event capture
+   - Checks `NODE_ENV === 'production'` before sending
+   - Dynamically imports PostHog client for optimal performance
+   - Silent fail mechanism prevents analytics failures from breaking the app
+   - Usage: `captureAnalyticsEvent('event-name', { prop: value })`
+
+2. **`hashLocationId(locationId)`**
+   - Converts location IDs to pseudonymous 16-character SHA-256 hex identifiers
+   - Enables location analytics without storing location addresses
+   - Consistent hashing for user journey correlation
+   - Usage: `const hashed = hashLocationId(locationId)`
+
+#### Event Catalog
+
+##### Authentication Events
+
+| Event | File | Trigger | Properties | Notes |
+|-------|------|---------|------------|-------|
+| `user-signed-up` | `components/auth/signup-form.tsx:104` | After successful account creation | `{}` | Contextual event; no PII |
+| `user-logged-in` | `components/auth/login-form.tsx:40` | After successful login | `{}` | Contextual event; no credentials |
+
+##### CSV Import Events
+
+| Event | File | Trigger | Properties | Notes |
+|-------|------|---------|------------|-------|
+| `csv-upload-started` | `components/import/csv-upload.tsx:45` | When CSV file selected (drag or click) | `fileSize` (bytes), `fileName` (original name) | No file contents sent |
+| `csv-upload-completed` | `components/import/csv-upload.tsx:68` | After successful upload and parsing | `rowCount` (number of data rows) | No raw data included |
+
+##### Integration Events
+
+| Event | File | Trigger | Properties | Notes |
+|-------|------|---------|------------|-------|
+| `square-connected` | `components/import/square-connect.tsx:36` | After Square OAuth callback success | `{}` | No credentials/tokens stored |
+
+##### Chat & Conversation Events
+
+| Event | File | Trigger | Properties | Notes |
+|-------|------|---------|------------|-------|
+| `conversation-started` | `components/chat/conversation-list.tsx:46` | When creating new conversation | `locationId` (SHA-256 hashed, 16 chars) | Original ID not exposed |
+| `first-question-asked` | `components/chat/chat-interface.tsx:73` | On first message sent in conversation | `modelId` (AI model identifier), `tier` (subscription tier, default: "default") | No message content |
+
+##### Location Management Events
+
+| Event | File | Trigger | Properties | Notes |
+|-------|------|---------|------------|-------|
+| `location-created` | `components/settings/location-form.tsx:77` | After successful new location creation | `type` ("restaurant" or "food_truck") | Address, zip code, timezone excluded |
+
+#### PII Protection Rules
+
+**No PII ever captured:**
+- ✓ No email addresses anywhere
+- ✓ No message content in chat events
+- ✓ No location addresses or zip codes
+- ✓ No API keys or credentials
+- ✓ No tokens or session identifiers
+- ✓ Location IDs hashed to SHA-256 pseudonyms
+- ✓ File names included (not full paths)
+
+**Implementation:**
+- All events check `NODE_ENV === 'production'` before sending
+- Development mode silently skips event capture
+- Event failures won't affect user experience (silent fail, non-blocking)
+- Uses existing PostHog client in codebase
+
+#### Client-Side Initialization
+
+The PostHog provider is initialized only in production:
+
+**File:** `providers/posthogProvider.tsx` (production-only wrapper)
+**Server-side:** `lib/posthog-server.ts` (singleton)
+**Initialization:** `instrumentation-client.ts` (Next.js 16 instrumentation, production-only)
+
+#### Reverse Proxy Configuration
+
+PostHog requests are reverse-proxied via Next.js rewrites (configured in `next.config.ts`):
+
+- `/ph/*` → `https://us.i.posthog.com/`
+- `/ingest/*` → `https://us.i.posthog.com/`
+
+This prevents ad-blockers from blocking analytics and improves privacy.
+
+#### Environment Configuration
+
+```bash
+# PostHog configuration (in .env)
+NEXT_PUBLIC_POSTHOG_KEY=<your-posthog-api-key>
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+```
+
+Note: PostHog key is public (safe to expose in browser). Host is configured for reverse proxy.
 
 ### Typography & Branding
 
@@ -879,12 +1285,11 @@ catch (error) {
 
 ## Spec References
 
-For context on product scope and pricing:
+For context on product scope and roadmap:
 
-- **Compaction (context summary):** `.agents/spec/compaction.md`
-- **PRD (full spec):** `.agents/spec/PRD-v4.md`
-- **Cost analysis:** `.agents/spec/cost-analysis.md`
-- **Product outline:** `.agents/spec/PantryIQ Outline.md`
+- **Founding Vision & Roadmap:** `.agents/spec/VISION.md` (Harry's vision, V2 roadmap, competitive advantage)
+- **PRD (full spec):** `.agents/spec/PRD-FINAL.md` (canonical product requirements)
+- **Cost analysis:** `.agents/spec/cost-analysis.md` (LLM cost tracking and analysis)
 
 ---
 
