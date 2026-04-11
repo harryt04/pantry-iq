@@ -54,9 +54,7 @@ const SidebarProvider = React.forwardRef<HTMLDivElement, SidebarProviderProps>(
     ref,
   ) => {
     const [openMobile, setOpenMobile] = React.useState(false)
-    const [state, setStateInternal] = React.useState<'expanded' | 'collapsed'>(
-      'expanded',
-    )
+    const [state] = React.useState<'expanded' | 'collapsed'>('expanded')
     const [_open, _setOpen] = React.useState(defaultOpen)
     const open = openProp ?? _open
     const onOpenChange = onOpenChangeProp ?? _setOpen
@@ -217,7 +215,7 @@ const SidebarHeader = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      'border-sidebar-border flex flex-col gap-2 border-b px-4 py-3',
+      'border-sidebar-border flex flex-col gap-2 border-b',
       className,
     )}
     {...props}
@@ -232,7 +230,7 @@ const SidebarFooter = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      'border-sidebar-border flex flex-col gap-2 border-t px-4 py-3',
+      'border-sidebar-border flex flex-col gap-2 border-t',
       className,
     )}
     {...props}
@@ -393,7 +391,7 @@ const SidebarMenuButton = React.forwardRef<
   React.ButtonHTMLAttributes<HTMLButtonElement> & {
     asChild?: boolean
     isActive?: boolean
-    tooltip?: string | React.ComponentProps<any>
+    tooltip?: string | Record<string, unknown>
   } & VariantProps<typeof sidebarMenuButtonVariants>
 >(
   (
@@ -402,7 +400,6 @@ const SidebarMenuButton = React.forwardRef<
       isActive = false,
       variant = 'default',
       size = 'default',
-      tooltip,
       className,
       ...props
     },

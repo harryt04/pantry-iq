@@ -11,16 +11,8 @@ import {
   Settings,
   LogOut,
 } from 'lucide-react'
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export function AppSidebar() {
   const pathname = usePathname()
@@ -37,34 +29,38 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <div className="flex items-center gap-2">
-          <ChefHat className="text-primary h-6 w-6" />
-          <span className="font-bold">PantryIQ</span>
-        </div>
-      </SidebarHeader>
+    <div className="bg-sidebar border-sidebar-border hidden h-screen w-64 flex-col border-r md:flex">
+      {/* Header */}
+      <div className="border-sidebar-border flex items-center gap-3 border-b px-4 py-4">
+        <ChefHat className="text-primary h-6 w-6 flex-shrink-0" />
+        <span className="text-lg font-bold">PantryIQ</span>
+      </div>
 
-      <SidebarContent>
-        <SidebarMenu>
-          {navItems.map((item) => {
-            const isActive = pathname === item.href
-            const Icon = item.icon
-            return (
-              <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton asChild isActive={isActive}>
-                  <Link href={item.href} className="flex items-center gap-2">
-                    <Icon className="h-4 w-4" />
-                    <span>{item.label}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )
-          })}
-        </SidebarMenu>
-      </SidebarContent>
+      {/* Navigation */}
+      <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-4">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href
+          const Icon = item.icon
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                isActive
+                  ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                  : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+              )}
+            >
+              <Icon className="h-4 w-4 flex-shrink-0" />
+              <span>{item.label}</span>
+            </Link>
+          )
+        })}
+      </nav>
 
-      <SidebarFooter>
+      {/* Footer */}
+      <div className="border-sidebar-border border-t px-2 py-4">
         <Button
           variant="outline"
           className="w-full justify-start gap-2"
@@ -73,7 +69,7 @@ export function AppSidebar() {
           <LogOut className="h-4 w-4" />
           Logout
         </Button>
-      </SidebarFooter>
-    </Sidebar>
+      </div>
+    </div>
   )
 }
