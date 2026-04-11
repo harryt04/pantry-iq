@@ -248,7 +248,12 @@ export async function POST(
     }
 
     // Update status to complete or error
-    const finalStatus = errors.length === 0 ? 'complete' : 'complete'
+    const finalStatus =
+      errors.length === 0
+        ? 'complete'
+        : successCount > 0
+          ? 'complete' // Partial success — some rows imported
+          : 'error' // Total failure — zero rows imported
     const errorDetails = errors.length > 0 ? JSON.stringify(errors) : null
 
     await db

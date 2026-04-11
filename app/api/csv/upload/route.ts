@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { mkdir, writeFile } from 'fs/promises'
+import { join } from 'path'
 import { parseCSV } from '@/lib/csv/parser'
 import { db } from '@/db'
 import { csvUploads } from '@/db/schema/csv-uploads'
@@ -6,13 +8,9 @@ import { csvUploads } from '@/db/schema/csv-uploads'
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
 
 /**
- * Get the CSV upload directory - only evaluated at runtime
- * Uses indirect approach to prevent Turbopack static analysis
+ * Get the CSV upload directory
  */
 async function getUploadDir(): Promise<string> {
-  // Use string concatenation to hide from Turbopack
-  const fsModule = 'fs' + '/promises'
-  const { mkdir } = await import(fsModule)
   const uploadDir = process.env.CSV_UPLOAD_PATH || '/tmp/csv-uploads'
   try {
     await mkdir(uploadDir, { recursive: true })
@@ -23,20 +21,11 @@ async function getUploadDir(): Promise<string> {
 }
 
 /**
- * Write CSV file - only evaluated at runtime
- * Uses indirect approach to prevent Turbopack static analysis
+ * Write CSV file to disk
  */
 async function writeCSVFile(uploadId: string, buffer: Buffer): Promise<void> {
-  // Use string concatenation to hide from Turbopack
-  const fsModule = 'fs' + '/promises'
-  const pathModule = 'path'
-  const { writeFile } = await import(fsModule)
-  const { join: joinPaths } = await import(pathModule)
   const uploadDir = process.env.CSV_UPLOAD_PATH || '/tmp/csv-uploads'
-  // Use a helper function to obscure the join call
-  const filePath = [uploadDir, uploadId].reduce((prev, curr) =>
-    joinPaths(/*turbopackIgnore: true*/ prev, curr),
-  )
+  const filePath = join(uploadDir, uploadId)
   await writeFile(filePath, buffer)
 }
 

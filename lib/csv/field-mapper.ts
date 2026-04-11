@@ -31,55 +31,59 @@ export type FieldMapping = Record<string, StandardField | null>
 
 /**
  * Fallback mappings for common column name patterns
+ *
+ * Patterns are ordered by specificity (multi-word before single-word).
+ * This helps the word-boundary matching prioritize more specific patterns.
+ * Single-word patterns are kept minimal to avoid false positives.
  */
 const FALLBACK_PATTERNS: Record<string, StandardField> = {
-  // Date patterns
-  date: 'date',
+  // Date patterns (multi-word most specific first)
   'transaction date': 'date',
   'sale date': 'date',
   'purchase date': 'date',
   timestamp: 'date',
+  date: 'date',
   time: 'date',
 
-  // Item patterns
-  item: 'item',
-  product: 'item',
+  // Item patterns (multi-word most specific first, single-word less likely)
   'product name': 'item',
   'item name': 'item',
+  item: 'item',
+  product: 'item',
   description: 'item',
   sku: 'item',
-  name: 'item',
+  // Removed: 'name' (too generic, causes "Server Name" -> item false positive)
 
-  // Quantity patterns
+  // Quantity patterns (keep only unambiguous)
   qty: 'qty',
   quantity: 'qty',
-  amount: 'qty',
-  count: 'qty',
-  units: 'qty',
   'qty sold': 'qty',
+  units: 'qty',
+  // Removed: 'amount' (too generic, causes "Discount Amount", "Tax Amount" -> qty)
+  // Removed: 'count' (too generic, causes "Guest Count" -> qty)
 
-  // Revenue patterns
+  // Revenue patterns (keep most specific)
+  'sales amount': 'revenue',
+  'total sales': 'revenue',
+  'sale price': 'revenue',
+  'unit price': 'revenue',
   revenue: 'revenue',
   sales: 'revenue',
-  'sales amount': 'revenue',
-  'sale price': 'revenue',
   price: 'revenue',
-  'unit price': 'revenue',
   total: 'revenue',
-  'total sales': 'revenue',
 
   // Cost patterns
-  cost: 'cost',
   'unit cost': 'cost',
   'cost price': 'cost',
   'purchase price': 'cost',
+  cost: 'cost',
   cogs: 'cost',
   expense: 'cost',
 
   // Location patterns
+  'store name': 'location',
   location: 'location',
   store: 'location',
-  'store name': 'location',
   branch: 'location',
   warehouse: 'location',
 }
@@ -92,7 +96,19 @@ function normalizeHeader(header: string): string {
 }
 
 /**
+ * Escape regex special characters for safe regex pattern construction
+ */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/**
  * Find best fallback mapping for a header using pattern matching
+ *
+ * Word-boundary substring match: only match if the pattern appears
+ * as a complete word segment in the header (not as a substring of
+ * an unrelated word). Check that the pattern is preceded and followed
+ * by a word boundary (start/end, space, underscore, hyphen).
  */
 function findFallbackMapping(header: string): StandardField | null {
   const normalized = normalizeHeader(header)
@@ -102,9 +118,12 @@ function findFallbackMapping(header: string): StandardField | null {
     return FALLBACK_PATTERNS[normalized]
   }
 
-  // Substring match (for patterns like "Sale Date" matching "date")
+  // Word-boundary substring match
   for (const [pattern, field] of Object.entries(FALLBACK_PATTERNS)) {
-    if (normalized.includes(pattern) || pattern.includes(normalized)) {
+    const regex = new RegExp(
+      `(?:^|[\\s_-])${escapeRegex(pattern)}(?:$|[\\s_-])`,
+    )
+    if (regex.test(normalized)) {
       return field
     }
   }
@@ -207,12 +226,29 @@ Always return valid JSON.`
 
 /**
  * Fallback mapping using pattern matching
+ *
+ * Prevents duplicate target field assignments: multiple columns can match
+ * the same target field (e.g., "Date" and "Time" both match 'date').
+ * This tracks which targets have been assigned and uses first-match-wins
+ * to preserve the correct value and prevent last-write-wins overwrites.
  */
 function fallbackMappings(headers: string[]): FieldMapping {
   const mapping: FieldMapping = {}
+  const assignedTargets = new Set<StandardField>()
 
   for (const header of headers) {
-    mapping[header] = findFallbackMapping(header)
+    const target = findFallbackMapping(header)
+    if (target && !assignedTargets.has(target)) {
+      // Target field not yet assigned -- claim it
+      mapping[header] = target
+      assignedTargets.add(target)
+    } else if (target && assignedTargets.has(target)) {
+      // Target field already assigned -- skip duplicate
+      mapping[header] = null
+    } else {
+      // No match found
+      mapping[header] = null
+    }
   }
 
   return mapping
