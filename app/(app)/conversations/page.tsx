@@ -1,4 +1,5 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { ConversationListContainer } from '@/components/chat/conversation-list-container'
 
 export default function ConversationsPage() {
   return (
@@ -15,9 +16,7 @@ export default function ConversationsPage() {
           <CardTitle>Your Conversations</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            Conversations list will be available soon. Reference: WU-3.3
-          </p>
+          <ConversationListContainer />
         </CardContent>
       </Card>
     </div>

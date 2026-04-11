@@ -12,15 +12,15 @@ The wizard has completed a deep integration of your PantryIQ landing page projec
 
 ## Events implemented
 
-| Event Name                  | Description                                                          | File                          |
-| --------------------------- | -------------------------------------------------------------------- | ----------------------------- |
-| `waitlist-form-focused`     | User focuses on the email input field, indicating intent to sign up  | `components/landing-page.tsx` |
-| `waitlist-form-submitted`   | User successfully submits the waitlist signup form (conversion)      | `components/landing-page.tsx` |
-| `waitlist-form-error`       | User encounters an error when submitting the waitlist form           | `components/landing-page.tsx` |
-| `early-access-link-clicked` | User clicks the 'Get Early Access' button in navigation              | `components/landing-page.tsx` |
-| `feature-card-viewed`       | User scrolls to view the features section                            | `components/landing-page.tsx` |
-| `pricing-card-viewed`       | User scrolls to view the pricing section                             | `components/landing-page.tsx` |
-| `launch-signup`             | Server-side signup event with user identification                    | `app/api/subscribe/route.ts`  |
+| Event Name                  | Description                                                         | File                          |
+| --------------------------- | ------------------------------------------------------------------- | ----------------------------- |
+| `waitlist-form-focused`     | User focuses on the email input field, indicating intent to sign up | `components/landing-page.tsx` |
+| `waitlist-form-submitted`   | User successfully submits the waitlist signup form (conversion)     | `components/landing-page.tsx` |
+| `waitlist-form-error`       | User encounters an error when submitting the waitlist form          | `components/landing-page.tsx` |
+| `early-access-link-clicked` | User clicks the 'Get Early Access' button in navigation             | `components/landing-page.tsx` |
+| `feature-card-viewed`       | User scrolls to view the features section                           | `components/landing-page.tsx` |
+| `pricing-card-viewed`       | User scrolls to view the pricing section                            | `components/landing-page.tsx` |
+| `launch-signup`             | Server-side signup event with user identification                   | `app/api/subscribe/route.ts`  |
 
 ## Next steps
 

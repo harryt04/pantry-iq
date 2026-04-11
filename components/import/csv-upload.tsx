@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { FieldMappingUI } from '@/components/import/field-mapping-ui'
 
 interface CSVUploadProps {
   locationId: string
@@ -31,6 +32,7 @@ export function CSVUpload({ locationId, onUploadComplete }: CSVUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null)
+  const [showFieldMapping, setShowFieldMapping] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFile = useCallback(
@@ -56,6 +58,7 @@ export function CSVUpload({ locationId, onUploadComplete }: CSVUploadProps) {
         }
 
         setUploadResult(data)
+        setShowFieldMapping(true)
         onUploadComplete?.(data)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error occurred')
@@ -90,6 +93,37 @@ export function CSVUpload({ locationId, onUploadComplete }: CSVUploadProps) {
     if (files && files.length > 0) {
       handleFile(files[0])
     }
+  }
+
+  // Show field mapping UI
+  if (showFieldMapping && uploadResult) {
+    return (
+      <div className="space-y-4">
+        <Card className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950">
+          <CardHeader>
+            <CardTitle className="text-blue-900 dark:text-blue-100">
+              {uploadResult.filename}
+            </CardTitle>
+            <CardDescription className="text-blue-800 dark:text-blue-200">
+              {uploadResult.rowCount} rows, {uploadResult.headers.length}{' '}
+              columns
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <FieldMappingUI
+          uploadId={uploadResult.uploadId}
+          headers={uploadResult.headers}
+          preview={uploadResult.preview}
+          onCancel={() => {
+            setShowFieldMapping(false)
+            setUploadResult(null)
+            setError(null)
+            fileInputRef.current?.click()
+          }}
+        />
+      </div>
+    )
   }
 
   return (
@@ -154,121 +188,6 @@ export function CSVUpload({ locationId, onUploadComplete }: CSVUploadProps) {
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-      )}
-
-      {/* Success - Preview */}
-      {uploadResult && (
-        <Card className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-              <div>
-                <CardTitle className="text-green-900 dark:text-green-100">
-                  Upload Successful
-                </CardTitle>
-                <CardDescription className="text-green-800 dark:text-green-200">
-                  {uploadResult.filename}
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="font-medium text-gray-600 dark:text-gray-400">
-                  Total Rows
-                </p>
-                <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {uploadResult.rowCount}
-                </p>
-              </div>
-              <div>
-                <p className="font-medium text-gray-600 dark:text-gray-400">
-                  Columns
-                </p>
-                <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {uploadResult.headers.length}
-                </p>
-              </div>
-            </div>
-
-            {/* Headers */}
-            <div>
-              <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Column Headers
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {uploadResult.headers.map((header, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800 dark:bg-green-900 dark:text-green-100"
-                  >
-                    {header}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Preview Table */}
-            {uploadResult.preview.length > 0 && (
-              <div>
-                <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Preview (First {uploadResult.preview.length} rows)
-                </p>
-                <div className="overflow-x-auto rounded-lg border border-green-200 dark:border-green-900">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-green-200 bg-green-100 dark:border-green-900 dark:bg-green-900">
-                        {uploadResult.headers.map((header) => (
-                          <th
-                            key={header}
-                            className="px-4 py-2 text-left font-semibold text-green-900 dark:text-green-100"
-                          >
-                            {header}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {uploadResult.preview.map((row, rowIdx) => (
-                        <tr
-                          key={rowIdx}
-                          className="border-b border-green-100 last:border-0 dark:border-green-900"
-                        >
-                          {uploadResult.headers.map((header) => (
-                            <td
-                              key={`${rowIdx}-${header}`}
-                              className="px-4 py-2 text-gray-700 dark:text-gray-300"
-                            >
-                              {row[header] || '-'}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex gap-2 pt-2">
-              <Button
-                onClick={() => {
-                  setUploadResult(null)
-                  setError(null)
-                  fileInputRef.current?.click()
-                }}
-                variant="outline"
-              >
-                Upload Another File
-              </Button>
-              <Button variant="default" disabled>
-                Continue to Field Mapping
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       )}
     </div>
   )

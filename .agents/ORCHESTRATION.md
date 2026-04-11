@@ -1751,6 +1751,7 @@ You are a UX engineer. Your task is to add consistent error boundaries, loading 
   - Use `Suspense` for loading boundaries
   - Use error boundary for error handling
 - All API routes -- Return consistent error JSON:
+
   ```json
   { "error": "User-friendly message", "code": "ERROR_CODE" }
   ```

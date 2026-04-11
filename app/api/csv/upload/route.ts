@@ -2,8 +2,23 @@ import { NextRequest, NextResponse } from 'next/server'
 import { parseCSV } from '@/lib/csv/parser'
 import { db } from '@/db'
 import { csvUploads } from '@/db/schema/csv-uploads'
+import fs from 'fs/promises'
+import path from 'path'
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
+
+/**
+ * Ensure upload directory exists
+ */
+async function ensureUploadDir(): Promise<string> {
+  const uploadDir = process.env.CSV_UPLOAD_PATH || '/tmp/csv-uploads'
+  try {
+    await fs.mkdir(uploadDir, { recursive: true })
+  } catch (error) {
+    console.warn('Failed to create upload directory:', error)
+  }
+  return uploadDir
+}
 
 /**
  * POST /api/csv/upload
@@ -72,8 +87,19 @@ export async function POST(request: NextRequest) {
         filename: file.name,
         rowCount: parsed.totalRows,
         status: 'pending',
+        fieldMapping: { headers: parsed.headers },
       })
       .returning()
+
+    // Store file for later processing
+    const uploadDir = await ensureUploadDir()
+    const filePath = path.join(uploadDir, uploadRecord.id)
+    try {
+      await fs.writeFile(filePath, buffer)
+    } catch (error) {
+      console.warn('Failed to store CSV file:', error)
+      // Continue anyway - we have the preview data
+    }
 
     return NextResponse.json(
       {
