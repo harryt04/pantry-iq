@@ -2,8 +2,10 @@
 
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+import Link from 'next/link'
 import { CSVUpload } from '@/components/import/csv-upload'
 import { SquareConnect } from '@/components/import/square-connect'
+import { LocationSelector } from '@/components/import/location-selector'
 
 function ImportContent() {
   const searchParams = useSearchParams()
@@ -11,11 +13,15 @@ function ImportContent() {
 
   if (!locationId) {
     return (
-      <div className="border-destructive bg-destructive/10 rounded-lg border p-4">
-        <p className="text-destructive text-sm font-medium">
-          Missing location ID. Please provide a valid location_id query
-          parameter.
-        </p>
+      <div className="space-y-4">
+        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-900/30 dark:bg-yellow-950/20">
+          <p className="text-sm font-medium text-yellow-900 dark:text-yellow-200">
+            Please select a location to import data into.
+          </p>
+        </div>
+        <Suspense fallback={<div>Loading locations...</div>}>
+          <LocationSelector />
+        </Suspense>
       </div>
     )
   }
@@ -44,9 +50,7 @@ export default function ImportPage() {
         </p>
       </div>
 
-      <Suspense fallback={<div>Loading...</div>}>
-        <ImportContent />
-      </Suspense>
+      <ImportContent />
     </div>
   )
 }
