@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { locations } from '@/db/schema'
 import { eq } from 'drizzle-orm'
+import { ApiError, logErrorSafely } from '@/lib/api-error'
 
 // GET /api/locations - List all locations for current user
 export async function GET(req: NextRequest) {
@@ -12,7 +13,10 @@ export async function GET(req: NextRequest) {
     })
 
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return ApiError.unauthorized(
+        'Authentication required',
+        'NOT_AUTHENTICATED',
+      )
     }
 
     const userLocations = await db
@@ -22,11 +26,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(userLocations, { status: 200 })
   } catch (error) {
-    console.error('Error fetching locations:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch locations' },
-      { status: 500 },
-    )
+    const message = logErrorSafely(error, 'GET /api/locations')
+    return ApiError.internalServerError(message, 'FETCH_LOCATIONS_ERROR')
   }
 }
 
@@ -38,26 +39,35 @@ export async function POST(req: NextRequest) {
     })
 
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return ApiError.unauthorized(
+        'Authentication required',
+        'NOT_AUTHENTICATED',
+      )
     }
 
-    const body = await req.json()
+    let body
+    try {
+      body = await req.json()
+    } catch {
+      return ApiError.badRequest('Invalid JSON', 'INVALID_JSON')
+    }
+
     const { name, zipCode, address, timezone, type } = body
 
     // Validate required fields
     if (!name || !zipCode) {
-      return NextResponse.json(
-        { error: 'Missing required fields: name, zipCode' },
-        { status: 400 },
+      return ApiError.badRequest(
+        'Missing required fields: name, zipCode',
+        'MISSING_REQUIRED_FIELDS',
       )
     }
 
     // Validate type field
     const validTypes = ['restaurant', 'food_truck']
     if (type && !validTypes.includes(type)) {
-      return NextResponse.json(
-        { error: `Invalid type. Must be one of: ${validTypes.join(', ')}` },
-        { status: 400 },
+      return ApiError.badRequest(
+        `Invalid type. Must be one of: ${validTypes.join(', ')}`,
+        'INVALID_TYPE',
       )
     }
 
@@ -75,10 +85,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(newLocation[0], { status: 201 })
   } catch (error) {
-    console.error('Error creating location:', error)
-    return NextResponse.json(
-      { error: 'Failed to create location' },
-      { status: 500 },
-    )
+    const message = logErrorSafely(error, 'POST /api/locations')
+    return ApiError.internalServerError(message, 'CREATE_LOCATION_ERROR')
   }
 }

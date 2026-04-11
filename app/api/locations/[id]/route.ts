@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { locations } from '@/db/schema'
 import { eq } from 'drizzle-orm'
+import { ApiError, logErrorSafely } from '@/lib/api-error'
 
 // Helper function to verify location ownership
 async function verifyLocationOwnership(
@@ -29,13 +30,19 @@ export async function GET(
     })
 
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return ApiError.unauthorized(
+        'Authentication required',
+        'NOT_AUTHENTICATED',
+      )
     }
 
     // Verify ownership
     const isOwner = await verifyLocationOwnership(id, session.user.id)
     if (!isOwner) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return ApiError.forbidden(
+        'You do not have access to this location',
+        'ACCESS_DENIED',
+      )
     }
 
     const location = await db
@@ -44,16 +51,13 @@ export async function GET(
       .where(eq(locations.id, id))
 
     if (location.length === 0) {
-      return NextResponse.json({ error: 'Location not found' }, { status: 404 })
+      return ApiError.notFound('Location not found', 'LOCATION_NOT_FOUND')
     }
 
     return NextResponse.json(location[0], { status: 200 })
   } catch (error) {
-    console.error('Error fetching location:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch location' },
-      { status: 500 },
-    )
+    const message = logErrorSafely(error, 'GET /api/locations/[id]')
+    return ApiError.internalServerError(message, 'FETCH_LOCATION_ERROR')
   }
 }
 
@@ -69,32 +73,44 @@ export async function PUT(
     })
 
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return ApiError.unauthorized(
+        'Authentication required',
+        'NOT_AUTHENTICATED',
+      )
     }
 
     // Verify ownership
     const isOwner = await verifyLocationOwnership(id, session.user.id)
     if (!isOwner) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return ApiError.forbidden(
+        'You do not have access to this location',
+        'ACCESS_DENIED',
+      )
     }
 
-    const body = await req.json()
+    let body
+    try {
+      body = await req.json()
+    } catch {
+      return ApiError.badRequest('Invalid JSON', 'INVALID_JSON')
+    }
+
     const { name, zipCode, address, timezone, type } = body
 
     // Validate required fields if provided
     if (name === '' || zipCode === '') {
-      return NextResponse.json(
-        { error: 'Name and zipCode cannot be empty' },
-        { status: 400 },
+      return ApiError.badRequest(
+        'Name and zipCode cannot be empty',
+        'INVALID_FIELDS',
       )
     }
 
     // Validate type field if provided
     const validTypes = ['restaurant', 'food_truck']
     if (type && !validTypes.includes(type)) {
-      return NextResponse.json(
-        { error: `Invalid type. Must be one of: ${validTypes.join(', ')}` },
-        { status: 400 },
+      return ApiError.badRequest(
+        `Invalid type. Must be one of: ${validTypes.join(', ')}`,
+        'INVALID_TYPE',
       )
     }
 
@@ -113,11 +129,8 @@ export async function PUT(
 
     return NextResponse.json(updatedLocation[0], { status: 200 })
   } catch (error) {
-    console.error('Error updating location:', error)
-    return NextResponse.json(
-      { error: 'Failed to update location' },
-      { status: 500 },
-    )
+    const message = logErrorSafely(error, 'PUT /api/locations/[id]')
+    return ApiError.internalServerError(message, 'UPDATE_LOCATION_ERROR')
   }
 }
 
@@ -133,13 +146,19 @@ export async function DELETE(
     })
 
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return ApiError.unauthorized(
+        'Authentication required',
+        'NOT_AUTHENTICATED',
+      )
     }
 
     // Verify ownership
     const isOwner = await verifyLocationOwnership(id, session.user.id)
     if (!isOwner) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return ApiError.forbidden(
+        'You do not have access to this location',
+        'ACCESS_DENIED',
+      )
     }
 
     // Delete location (cascade is handled by database constraints)
@@ -149,7 +168,7 @@ export async function DELETE(
       .returning()
 
     if (deletedLocation.length === 0) {
-      return NextResponse.json({ error: 'Location not found' }, { status: 404 })
+      return ApiError.notFound('Location not found', 'LOCATION_NOT_FOUND')
     }
 
     return NextResponse.json(
@@ -157,10 +176,7 @@ export async function DELETE(
       { status: 200 },
     )
   } catch (error) {
-    console.error('Error deleting location:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete location' },
-      { status: 500 },
-    )
+    const message = logErrorSafely(error, 'DELETE /api/locations/[id]')
+    return ApiError.internalServerError(message, 'DELETE_LOCATION_ERROR')
   }
 }

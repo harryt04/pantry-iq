@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { AlertCircle, Loader2, CheckCircle, XCircle } from 'lucide-react'
+import { captureAnalyticsEvent } from '@/lib/analytics-utils'
 
 type SyncState = 'pending' | 'syncing' | 'synced' | 'error' | 'disconnected'
 
@@ -32,6 +33,7 @@ export function SquareConnect({
     if (connected === 'true' && connId) {
       setConnectionId(connId)
       setStatus('syncing')
+      captureAnalyticsEvent('square-connected', {})
       onConnectionSuccess?.(connId)
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname)

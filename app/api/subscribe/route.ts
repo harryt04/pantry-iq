@@ -1,23 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPostHogClient } from '@/lib/posthog-server'
+import { ApiError, logErrorSafely } from '@/lib/api-error'
 
 export async function POST(request: NextRequest) {
   const posthog = getPostHogClient()
 
   try {
-    const { email } = await request.json()
+    let body
+    try {
+      body = await request.json()
+    } catch {
+      return ApiError.badRequest('Invalid JSON', 'INVALID_JSON')
+    }
+
+    const { email } = body
 
     if (!email || typeof email !== 'string') {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 })
+      return ApiError.badRequest('Email is required', 'MISSING_EMAIL')
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 },
-      )
+      return ApiError.badRequest('Invalid email format', 'INVALID_EMAIL')
     }
 
     // Identify user on server side
@@ -54,10 +59,8 @@ export async function POST(request: NextRequest) {
       { message: 'Successfully subscribed!' },
       { status: 200 },
     )
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to process request' },
-      { status: 500 },
-    )
+  } catch (error) {
+    const message = logErrorSafely(error, 'POST /api/subscribe')
+    return ApiError.internalServerError(message, 'SUBSCRIBE_ERROR')
   }
 }

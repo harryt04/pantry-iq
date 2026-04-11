@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { captureAnalyticsEvent } from '@/lib/analytics-utils'
 
 interface LocationFormProps {
   initialData?: {
@@ -70,6 +71,13 @@ export function LocationForm({
       }
 
       await onSubmit(formData)
+
+      // Track location creation (only for new locations)
+      if (!initialData) {
+        captureAnalyticsEvent('location-created', {
+          type: formData.type || 'restaurant',
+        })
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save location')
       setIsSubmitting(false)

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Trash2, Plus } from 'lucide-react'
+import { captureAnalyticsEvent, hashLocationId } from '@/lib/analytics-utils'
 
 interface Conversation {
   id: string
@@ -40,6 +41,12 @@ export function ConversationList({
       }
 
       const { id } = await response.json()
+
+      // Track conversation creation with hashed location ID
+      captureAnalyticsEvent('conversation-started', {
+        locationId: hashLocationId(locationId),
+      })
+
       router.push(`/conversations/${id}`)
     } catch (error) {
       console.error('Failed to create conversation:', error)

@@ -1,22 +1,154 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useSession } from '@/lib/auth-client'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { ImportStatusCard } from '@/components/dashboard/import-status-card'
+import { LocationOverviewCard } from '@/components/dashboard/location-overview-card'
+import { QuickActionsCard } from '@/components/dashboard/quick-actions-card'
+
+interface DashboardData {
+  locations: Array<{
+    id: string
+    name: string
+    type: string
+    transactionCount: number
+    csvUploadCount: number
+    posConnectionStatus: string | null
+    conversationId: string | null
+  }>
+  recentCsvUploads: Array<{
+    id: string
+    filename: string
+    status: string
+    uploadedAt: Date
+    locationName: string
+    locationId: string
+    errorDetails: string | null
+  }>
+  totalLocations: number
+  totalTransactions: number
+}
+
+interface PosConnection {
+  locationId: string
+  locationName: string
+  syncState: string
+  lastSync: Date | null
+}
 
 export default function DashboardPage() {
+  const { data: session, isPending: isSessionLoading } = useSession()
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!session?.user) {
+      setIsLoading(false)
+      return
+    }
+
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true)
+        const response = await fetch('/api/dashboard')
+        if (!response.ok) {
+          throw new Error('Failed to fetch dashboard data')
+        }
+        const data = await response.json()
+        setDashboardData(data)
+        setError(null)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred')
+        console.error('Error fetching dashboard data:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDashboardData()
+  }, [session?.user])
+
+  if (isSessionLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="bg-muted h-10 w-32 rounded" />
+        </div>
+      </div>
+    )
+  }
+
+  if (!session?.user) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground mt-2">
+            Please log in to view your dashboard.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error && !dashboardData) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="bg-destructive/10 border-destructive/20 rounded-lg border p-4">
+              <p className="text-destructive text-sm font-medium">{error}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!dashboardData) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="bg-muted mb-4 h-10 w-32 rounded" />
+          <div className="bg-muted h-6 w-64 rounded" />
+        </div>
+      </div>
+    )
+  }
+
+  const stats = [
+    { label: 'Total Locations', value: dashboardData.totalLocations },
+    { label: 'Total Transactions', value: dashboardData.totalTransactions },
+    { label: 'Recent Uploads', value: dashboardData.recentCsvUploads.length },
+  ]
+
+  // Build POS connections from locations
+  const posConnections: PosConnection[] = dashboardData.locations
+    .filter((loc) => loc.posConnectionStatus)
+    .map((loc) => ({
+      locationId: loc.id,
+      locationName: loc.name,
+      syncState: loc.posConnectionStatus || 'pending',
+      lastSync: null,
+    }))
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground mt-2">
-          Welcome to your PantryIQ dashboard. Coming soon.
+          Overview of your inventory and import activity.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[
-          { label: 'Total Orders', value: '--' },
-          { label: 'Waste Reduction', value: '--' },
-          { label: 'Monthly Savings', value: '--' },
-          { label: 'Items Tracked', value: '--' },
-        ].map((stat) => (
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-3">
+        {stats.map((stat) => (
           <Card key={stat.label}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">
@@ -30,16 +162,20 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Coming Soon</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            Dashboard features will be available soon. Reference: WU-4.1
-          </p>
-        </CardContent>
-      </Card>
+      {/* Main Content */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <LocationOverviewCard locations={dashboardData.locations} />
+          <ImportStatusCard
+            csvUploads={dashboardData.recentCsvUploads}
+            posConnections={posConnections}
+          />
+        </div>
+
+        <div>
+          <QuickActionsCard hasLocations={dashboardData.totalLocations > 0} />
+        </div>
+      </div>
     </div>
   )
 }

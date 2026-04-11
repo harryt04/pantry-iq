@@ -4,6 +4,7 @@ import { db } from '@/db'
 import { conversations, locations } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { getModel } from '@/lib/ai/models'
+import { ApiError, logErrorSafely } from '@/lib/api-error'
 
 // GET /api/conversations/[id] - Get conversation details
 export async function GET(
@@ -18,7 +19,10 @@ export async function GET(
     })
 
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return ApiError.unauthorized(
+        'Authentication required',
+        'NOT_AUTHENTICATED',
+      )
     }
 
     // Verify conversation exists and belongs to user's location
@@ -28,9 +32,9 @@ export async function GET(
       .where(eq(conversations.id, conversationId))
 
     if (conversation.length === 0) {
-      return NextResponse.json(
-        { error: 'Conversation not found' },
-        { status: 404 },
+      return ApiError.notFound(
+        'Conversation not found',
+        'CONVERSATION_NOT_FOUND',
       )
     }
 
@@ -41,16 +45,16 @@ export async function GET(
       .where(eq(locations.id, conversation[0].locationId))
 
     if (location.length === 0 || location[0].userId !== session.user.id) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 })
+      return ApiError.forbidden(
+        'You do not have access to this conversation',
+        'ACCESS_DENIED',
+      )
     }
 
     return NextResponse.json(conversation[0], { status: 200 })
   } catch (error) {
-    console.error('Error fetching conversation:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch conversation' },
-      { status: 500 },
-    )
+    const message = logErrorSafely(error, 'GET /api/conversations/[id]')
+    return ApiError.internalServerError(message, 'FETCH_CONVERSATION_ERROR')
   }
 }
 
@@ -67,10 +71,19 @@ export async function PATCH(
     })
 
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return ApiError.unauthorized(
+        'Authentication required',
+        'NOT_AUTHENTICATED',
+      )
     }
 
-    const body = await req.json()
+    let body
+    try {
+      body = await req.json()
+    } catch {
+      return ApiError.badRequest('Invalid JSON', 'INVALID_JSON')
+    }
+
     const { defaultModel } = body
 
     // Verify conversation exists and belongs to user's location
@@ -80,9 +93,9 @@ export async function PATCH(
       .where(eq(conversations.id, conversationId))
 
     if (conversation.length === 0) {
-      return NextResponse.json(
-        { error: 'Conversation not found' },
-        { status: 404 },
+      return ApiError.notFound(
+        'Conversation not found',
+        'CONVERSATION_NOT_FOUND',
       )
     }
 
@@ -93,7 +106,10 @@ export async function PATCH(
       .where(eq(locations.id, conversation[0].locationId))
 
     if (location.length === 0 || location[0].userId !== session.user.id) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 })
+      return ApiError.forbidden(
+        'You do not have access to this conversation',
+        'ACCESS_DENIED',
+      )
     }
 
     // Validate model if provided
@@ -101,9 +117,9 @@ export async function PATCH(
       try {
         getModel(defaultModel)
       } catch {
-        return NextResponse.json(
-          { error: `Invalid model: ${defaultModel}` },
-          { status: 400 },
+        return ApiError.badRequest(
+          `Invalid model: ${defaultModel}`,
+          'INVALID_MODEL',
         )
       }
     }
@@ -119,11 +135,8 @@ export async function PATCH(
 
     return NextResponse.json(updated[0], { status: 200 })
   } catch (error) {
-    console.error('Error updating conversation:', error)
-    return NextResponse.json(
-      { error: 'Failed to update conversation' },
-      { status: 500 },
-    )
+    const message = logErrorSafely(error, 'PATCH /api/conversations/[id]')
+    return ApiError.internalServerError(message, 'UPDATE_CONVERSATION_ERROR')
   }
 }
 
@@ -140,7 +153,10 @@ export async function DELETE(
     })
 
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return ApiError.unauthorized(
+        'Authentication required',
+        'NOT_AUTHENTICATED',
+      )
     }
 
     // Verify conversation exists and belongs to user's location
@@ -150,9 +166,9 @@ export async function DELETE(
       .where(eq(conversations.id, conversationId))
 
     if (conversation.length === 0) {
-      return NextResponse.json(
-        { error: 'Conversation not found' },
-        { status: 404 },
+      return ApiError.notFound(
+        'Conversation not found',
+        'CONVERSATION_NOT_FOUND',
       )
     }
 
@@ -163,7 +179,10 @@ export async function DELETE(
       .where(eq(locations.id, conversation[0].locationId))
 
     if (location.length === 0 || location[0].userId !== session.user.id) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 })
+      return ApiError.forbidden(
+        'You do not have access to this conversation',
+        'ACCESS_DENIED',
+      )
     }
 
     // Delete conversation (messages will cascade delete)
@@ -171,10 +190,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true }, { status: 200 })
   } catch (error) {
-    console.error('Error deleting conversation:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete conversation' },
-      { status: 500 },
-    )
+    const message = logErrorSafely(error, 'DELETE /api/conversations/[id]')
+    return ApiError.internalServerError(message, 'DELETE_CONVERSATION_ERROR')
   }
 }

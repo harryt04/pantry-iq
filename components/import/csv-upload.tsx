@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { FieldMappingUI } from '@/components/import/field-mapping-ui'
+import { captureAnalyticsEvent } from '@/lib/analytics-utils'
 
 interface CSVUploadProps {
   locationId: string
@@ -40,6 +41,12 @@ export function CSVUpload({ locationId, onUploadComplete }: CSVUploadProps) {
       setError(null)
       setIsUploading(true)
 
+      // Track CSV upload start event
+      captureAnalyticsEvent('csv-upload-started', {
+        fileSize: file.size,
+        fileName: file.name,
+      })
+
       try {
         const formData = new FormData()
         formData.append('file', file)
@@ -56,6 +63,11 @@ export function CSVUpload({ locationId, onUploadComplete }: CSVUploadProps) {
           setError(data.error || 'Upload failed')
           return
         }
+
+        // Track successful CSV upload
+        captureAnalyticsEvent('csv-upload-completed', {
+          rowCount: data.rowCount,
+        })
 
         setUploadResult(data)
         setShowFieldMapping(true)

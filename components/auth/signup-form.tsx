@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { authClient } from '@/lib/auth-client'
+import { captureAnalyticsEvent } from '@/lib/analytics-utils'
 
 export function SignupForm() {
   const router = useRouter()
@@ -100,6 +101,7 @@ export function SignupForm() {
         }
       } else {
         // Sign up successful, redirect to dashboard
+        captureAnalyticsEvent('user-signed-up', {})
         router.push('/dashboard')
       }
     } catch (err) {

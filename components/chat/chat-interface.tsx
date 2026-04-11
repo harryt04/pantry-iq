@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { MessageBubble } from './message-bubble'
 import { ModelSelector } from './model-selector'
 import { Send, Loader } from 'lucide-react'
+import { captureAnalyticsEvent } from '@/lib/analytics-utils'
 
 interface ChatMessage {
   id: string
@@ -32,6 +33,9 @@ export function ChatInterface({
   const [input, setInput] = useState('')
   const [selectedModel, setSelectedModel] = useState(defaultModel)
   const [isLoading, setIsLoading] = useState(false)
+  const [isFirstMessage, setIsFirstMessage] = useState(
+    initialMessages.length === 0,
+  )
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Scroll to bottom on new messages
@@ -63,6 +67,15 @@ export function ChatInterface({
     if (!input.trim()) return
 
     const userContent = input
+
+    // Track first message event
+    if (isFirstMessage) {
+      captureAnalyticsEvent('first-question-asked', {
+        modelId: selectedModel,
+        tier: 'default', // Add tier logic if available
+      })
+      setIsFirstMessage(false)
+    }
 
     // Add user message to UI immediately
     const userMessage: ChatMessage = {
@@ -165,9 +178,9 @@ export function ChatInterface({
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden rounded-lg border border-border bg-card">
+    <div className="border-border bg-card flex flex-1 flex-col overflow-hidden rounded-lg border">
       {/* Header with Model Selector */}
-      <div className="border-b border-border bg-muted/30 p-4">
+      <div className="border-border bg-muted/30 border-b p-4">
         <div className="flex items-center justify-between gap-4">
           <h2 className="font-semibold">Chat</h2>
           <div className="w-64">
@@ -181,10 +194,10 @@ export function ChatInterface({
       </div>
 
       {/* Messages Area */}
-      <div className="space-y-4 overflow-y-auto p-6 flex-1">
+      <div className="flex-1 space-y-4 overflow-y-auto p-6">
         {messages.length === 0 ? (
           <div className="flex h-full items-center justify-center">
-            <div className="text-center text-muted-foreground">
+            <div className="text-muted-foreground text-center">
               <p>No messages yet. Start a conversation!</p>
             </div>
           </div>
@@ -205,7 +218,7 @@ export function ChatInterface({
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-border bg-muted/30 p-4">
+      <div className="border-border bg-muted/30 border-t p-4">
         <form onSubmit={handleSendMessage} className="flex gap-2">
           <Input
             type="text"
@@ -228,7 +241,7 @@ export function ChatInterface({
           </Button>
         </form>
         {isLoading && (
-          <p className="mt-2 text-xs text-muted-foreground">Thinking...</p>
+          <p className="text-muted-foreground mt-2 text-xs">Thinking...</p>
         )}
       </div>
     </div>

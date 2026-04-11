@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { authClient } from '@/lib/auth-client'
+import { captureAnalyticsEvent } from '@/lib/analytics-utils'
 
 export function LoginForm() {
   const router = useRouter()
@@ -36,6 +37,7 @@ export function LoginForm() {
         setError(result.error.message || 'Failed to sign in')
       } else {
         // Sign in successful, redirect to dashboard
+        captureAnalyticsEvent('user-logged-in', {})
         router.push('/dashboard')
       }
     } catch (err) {
