@@ -406,6 +406,15 @@ NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 - **Form State:** HTML forms with Server Actions (Next.js 16)
 - **No Redux/Zustand:** Zero handles sync; React hooks handle UI state
 
+### Error Handling & Loading States
+
+- **Error Boundary:** `app/(app)/error.tsx` catches unhandled errors in authenticated routes
+- **Loading States:** `app/(app)/loading.tsx` with skeleton loaders during data fetches
+- **API Errors:** Centralized `lib/api-error.ts` utility for consistent error responses
+- **Error Format:** All errors return `{ error: "user-friendly message", code: "ERROR_CODE" }` with appropriate HTTP status
+- **Security:** Stack traces logged server-side only; clients receive generic messages
+- **Components:** `components/ui/error-message.tsx` and `components/ui/loading-skeleton.tsx` for UI display
+
 ---
 
 ## Testing
@@ -475,6 +484,23 @@ npm run test
 - **Playwright:** `playwright.config.ts`
 - **Setup:** `tests/setup.ts` (shared fixtures)
 - **Fixtures:** `tests/fixtures/` (mock data, database seeds)
+
+### Error Handling Tests (E2E)
+
+Comprehensive error handling validation in `tests/e2e/error-handling.spec.ts` (20+ test cases):
+
+- **API Errors:** Authentication (401), Authorization (403), Not Found (404), Validation (400)
+- **Security:** Stack traces never exposed, consistent error response structure
+- **Loading States:** Skeleton loaders render with animations, match page layout
+- **Error Boundary:** Global error boundary catches and displays errors safely
+- **Status Codes:** Verify appropriate HTTP status codes for all error scenarios
+
+Run specific error tests:
+
+```bash
+npm run test:e2e -- error-handling.spec.ts
+PWDEBUG=1 npm run test:e2e  # Debug mode
+```
 
 ---
 
@@ -611,24 +637,29 @@ Same as `.env` but with production values:
 // app/api/my-feature/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth'
+import { ApiError, logErrorSafely } from '@/lib/api-error'
 
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession()
-    if (!session)
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!session?.user)
+      return ApiError.unauthorized(
+        'Authentication required',
+        'NOT_AUTHENTICATED',
+      )
 
     const body = await req.json()
     // ... implement logic
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = logErrorSafely(error, 'POST /api/my-feature')
+    return ApiError.internalServerError(message, 'FEATURE_ERROR')
   }
 }
 ```
 
-### Add a new database table
+---### Add a new database table
 
 ```typescript
 // db/schema/my-table.ts
@@ -703,6 +734,146 @@ describe('myFunction', () => {
 ```
 
 Run: `npm run test:unit`
+
+---
+
+## Error Handling Architecture
+
+### Error Response Format
+
+All API errors follow a consistent format:
+
+```json
+{
+  "error": "User-friendly message (never technical details)",
+  "code": "ERROR_CODE_IN_CAPS"
+}
+```
+
+### HTTP Status Codes
+
+- **400** - Bad Request (validation errors, missing fields, invalid JSON)
+- **401** - Unauthorized (not authenticated)
+- **403** - Forbidden (authenticated but not authorized)
+- **404** - Not Found (resource doesn't exist)
+- **409** - Conflict (resource conflict)
+- **422** - Unprocessable Entity (validation entity error)
+- **500** - Internal Server Error (unexpected errors)
+
+### Error Codes Reference
+
+#### Authentication/Authorization
+
+- `NOT_AUTHENTICATED` (401) - User not authenticated
+- `UNAUTHORIZED` (401) - General authorization failure
+- `ACCESS_DENIED` (403) - User doesn't own resource
+- `FORBIDDEN` (403) - Access forbidden
+
+#### Not Found
+
+- `NOT_FOUND` (404) - Generic resource not found
+- `LOCATION_NOT_FOUND` (404) - Specific location not found
+- `CONVERSATION_NOT_FOUND` (404) - Specific conversation not found
+
+#### Validation/Bad Request
+
+- `BAD_REQUEST` (400) - Invalid request
+- `INVALID_JSON` (400) - JSON parsing failed
+- `MISSING_EMAIL` (400) - Email field missing
+- `INVALID_EMAIL` (400) - Invalid email format
+- `MISSING_REQUIRED_FIELDS` (400) - Required fields missing
+- `MISSING_LOCATION_ID` (400) - Location ID missing
+- `INVALID_TYPE` (400) - Invalid type value
+- `INVALID_FIELDS` (400) - Invalid field values
+- `INVALID_MODEL` (400) - Invalid model identifier
+
+#### Server Errors
+
+- `INTERNAL_SERVER_ERROR` (500) - Unexpected error
+- `SUBSCRIBE_ERROR` (500) - Subscription error
+- `FETCH_LOCATIONS_ERROR` (500) - Fetch locations error
+- `CREATE_LOCATION_ERROR` (500) - Create location error
+- `UPDATE_LOCATION_ERROR` (500) - Update location error
+- `DELETE_LOCATION_ERROR` (500) - Delete location error
+- `FETCH_CONVERSATIONS_ERROR` (500) - Fetch conversations error
+- `CREATE_CONVERSATION_ERROR` (500) - Create conversation error
+- `UPDATE_CONVERSATION_ERROR` (500) - Update conversation error
+- `DELETE_CONVERSATION_ERROR` (500) - Delete conversation error
+
+### Security Features
+
+**Server-Side Logging:**
+
+```typescript
+console.error(`[GET /api/locations]`, {
+  message: 'Database connection failed',
+  stack: 'Error: ECONNREFUSED at ...',
+  timestamp: '2026-04-10T23:00:00Z',
+})
+```
+
+**Client Receives (Safe):**
+
+```json
+{
+  "error": "An unexpected error occurred. Please try again.",
+  "code": "FETCH_LOCATIONS_ERROR"
+}
+```
+
+**Protected Against:**
+
+- ✅ Stack trace exposure
+- ✅ SQL query injection visibility
+- ✅ Database credentials in errors
+- ✅ System path exposure
+- ✅ Internal system details
+- ✅ Process information leaks
+
+### Key Files
+
+| File                                 | Purpose                                               |
+| ------------------------------------ | ----------------------------------------------------- |
+| `lib/api-error.ts`                   | Centralized API error handler with safe logging       |
+| `app/(app)/error.tsx`                | Global error boundary for app routes                  |
+| `app/(app)/loading.tsx`              | Loading skeleton UI                                   |
+| `components/ui/error-message.tsx`    | Reusable error display component                      |
+| `components/ui/loading-skeleton.tsx` | Skeleton loader components (line, card, avatar, text) |
+| `tests/e2e/error-handling.spec.ts`   | 20+ comprehensive error handling tests                |
+
+### Error Boundary Usage
+
+Already applied globally to `app/(app)/*` routes. Catches unhandled errors and displays:
+
+- User-friendly error message
+- Retry button to reset state
+- Dashboard button to navigate home
+- Dev-only error details (development mode only)
+- No stack traces exposed to users
+
+### Using ApiError in API Routes
+
+```typescript
+import { ApiError, logErrorSafely } from '@/lib/api-error'
+
+// Authentication required
+return ApiError.unauthorized('Auth required', 'NOT_AUTHENTICATED')
+
+// Resource not found
+return ApiError.notFound('Location not found', 'LOCATION_NOT_FOUND')
+
+// Access denied
+return ApiError.forbidden('You do not have access', 'ACCESS_DENIED')
+
+// Validation error
+return ApiError.badRequest('Invalid email format', 'INVALID_EMAIL')
+
+// Safe error logging
+catch (error) {
+  const msg = logErrorSafely(error, 'GET /api/endpoint')
+  return ApiError.internalServerError(msg, 'ENDPOINT_ERROR')
+}
+```
 
 ---
 
