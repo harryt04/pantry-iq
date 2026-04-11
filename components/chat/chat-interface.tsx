@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState, useCallback, FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { MessageBubble } from './message-bubble'
 import { ModelSelector } from './model-selector'
 import { Send, Loader } from 'lucide-react'
@@ -193,28 +194,30 @@ export function ChatInterface({
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 space-y-4 overflow-y-auto p-6">
-        {messages.length === 0 ? (
-          <div className="flex h-full items-center justify-center">
-            <div className="text-muted-foreground text-center">
-              <p>No messages yet. Start a conversation!</p>
+      <ScrollArea className="flex-1">
+        <div className="space-y-4 p-6">
+          {messages.length === 0 ? (
+            <div className="flex h-full items-center justify-center">
+              <div className="text-muted-foreground text-center">
+                <p>No messages yet. Start a conversation!</p>
+              </div>
             </div>
-          </div>
-        ) : (
-          messages.map((message) => (
-            <MessageBubble
-              key={message.id}
-              role={message.role}
-              content={message.content}
-              timestamp={message.createdAt}
-              modelName={
-                message.role === 'assistant' ? message.modelUsed : undefined
-              }
-            />
-          ))
-        )}
-        <div ref={messagesEndRef} />
-      </div>
+          ) : (
+            messages.map((message) => (
+              <MessageBubble
+                key={message.id}
+                role={message.role}
+                content={message.content}
+                timestamp={message.createdAt}
+                modelName={
+                  message.role === 'assistant' ? message.modelUsed : undefined
+                }
+              />
+            ))
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      </ScrollArea>
 
       {/* Input Area */}
       <div className="border-border bg-muted/30 border-t p-4">

@@ -11,7 +11,14 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { STANDARD_FIELDS } from '@/lib/csv/field-mapper'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
 
 interface FieldMappingUIProps {
   uploadId: string
@@ -242,25 +249,29 @@ export function FieldMappingUI({
             {headers.map((header) => (
               <div key={header} className="flex items-end gap-3">
                 <div className="flex-1">
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <Label htmlFor={`field-${header}`} className="mb-1 block">
                     {header}
-                  </label>
-                  <select
+                  </Label>
+                  <Select
                     value={mapping[header] || ''}
-                    onChange={(e) =>
-                      handleMappingChange(
-                        header,
-                        e.target.value === '' ? null : e.target.value,
-                      )
+                    onValueChange={(value) =>
+                      handleMappingChange(header, value === '' ? null : value)
                     }
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-950"
                   >
-                    {STANDARD_FIELD_OPTIONS.map((opt) => (
-                      <option key={opt.value || 'skip'} value={opt.value || ''}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger id={`field-${header}`}>
+                      <SelectValue placeholder="Select a field" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STANDARD_FIELD_OPTIONS.map((opt) => (
+                        <SelectItem
+                          key={opt.value || 'skip'}
+                          value={opt.value || ''}
+                        >
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             ))}

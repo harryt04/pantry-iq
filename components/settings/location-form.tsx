@@ -5,6 +5,13 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { captureAnalyticsEvent } from '@/lib/analytics-utils'
 
 interface LocationFormProps {
@@ -46,9 +53,7 @@ export function LocationForm({
   const [error, setError] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
@@ -139,37 +144,53 @@ export function LocationForm({
 
           <div className="space-y-2">
             <Label htmlFor="timezone">Timezone</Label>
-            <select
-              id="timezone"
-              name="timezone"
+            <Select
               value={formData.timezone || 'America/New_York'}
-              onChange={handleChange}
+              onValueChange={(value) =>
+                setFormData({ ...formData, timezone: value })
+              }
               disabled={isSubmitting || isLoading}
-              className="border-input placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <option value="America/New_York">America/New_York</option>
-              <option value="America/Chicago">America/Chicago</option>
-              <option value="America/Denver">America/Denver</option>
-              <option value="America/Los_Angeles">America/Los_Angeles</option>
-              <option value="America/Anchorage">America/Anchorage</option>
-              <option value="Pacific/Honolulu">Pacific/Honolulu</option>
-              <option value="UTC">UTC</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="America/New_York">
+                  America/New_York
+                </SelectItem>
+                <SelectItem value="America/Chicago">America/Chicago</SelectItem>
+                <SelectItem value="America/Denver">America/Denver</SelectItem>
+                <SelectItem value="America/Los_Angeles">
+                  America/Los_Angeles
+                </SelectItem>
+                <SelectItem value="America/Anchorage">
+                  America/Anchorage
+                </SelectItem>
+                <SelectItem value="Pacific/Honolulu">
+                  Pacific/Honolulu
+                </SelectItem>
+                <SelectItem value="UTC">UTC</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="type">Location Type</Label>
-            <select
-              id="type"
-              name="type"
+            <Select
               value={formData.type || 'restaurant'}
-              onChange={handleChange}
+              onValueChange={(value) =>
+                setFormData({ ...formData, type: value })
+              }
               disabled={isSubmitting || isLoading}
-              className="border-input placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <option value="restaurant">Restaurant</option>
-              <option value="food_truck">Food Truck</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="restaurant">Restaurant</SelectItem>
+                <SelectItem value="food_truck">Food Truck</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex gap-2 pt-4">

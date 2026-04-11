@@ -166,7 +166,13 @@ async function buildPlacesData(locationId: string): Promise<string | null> {
     const placeSummaries = places
       .slice(0, 5)
       .map((p) => {
-        const types = p.types?.length ? p.types.join(', ') : 'Unknown'
+        const types = p.types
+          ? Array.isArray(p.types)
+            ? p.types.join(', ')
+            : typeof p.types === 'string'
+              ? JSON.parse(p.types).join(', ')
+              : 'Unknown'
+          : 'Unknown'
         return `  - ${p.orgName} (${types})\n    Address: ${p.address || 'N/A'}\n    Phone: ${p.phone || 'N/A'}`
       })
       .join('\n')

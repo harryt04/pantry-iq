@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
-import { Upload, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Upload, AlertCircle, Loader2 } from 'lucide-react'
 import {
   Card,
   CardContent,

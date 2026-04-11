@@ -120,7 +120,7 @@ export async function getDonationOpportunities(
           address: record.address || undefined,
           phone: record.phone || undefined,
           hours: record.hours || undefined,
-          types: record.types || undefined,
+          types: record.types ? JSON.parse(record.types) : undefined,
         }))
       }
 
@@ -141,7 +141,7 @@ export async function getDonationOpportunities(
           address: place.address || null,
           phone: place.phone || null,
           hours: place.hours || null,
-          types: place.types || null,
+          types: place.types ? JSON.stringify(place.types) : null,
           cachedAt: now,
         })
       }

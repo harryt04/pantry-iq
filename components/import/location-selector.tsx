@@ -81,8 +81,8 @@ export function LocationSelector() {
         <CardContent className="py-8">
           <div className="text-center">
             <p className="mb-4 text-gray-600 dark:text-gray-400">
-              You don't have any locations yet. Create one in settings to import
-              data.
+              You don&apos;t have any locations yet. Create one in settings to
+              import data.
             </p>
             <Link href="/settings">
               <Button>Go to Settings</Button>

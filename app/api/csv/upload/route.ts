@@ -2,22 +2,42 @@ import { NextRequest, NextResponse } from 'next/server'
 import { parseCSV } from '@/lib/csv/parser'
 import { db } from '@/db'
 import { csvUploads } from '@/db/schema/csv-uploads'
-import fs from 'fs/promises'
-import path from 'path'
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
 
 /**
- * Ensure upload directory exists
+ * Get the CSV upload directory - only evaluated at runtime
+ * Uses indirect approach to prevent Turbopack static analysis
  */
-async function ensureUploadDir(): Promise<string> {
+async function getUploadDir(): Promise<string> {
+  // Use string concatenation to hide from Turbopack
+  const fsModule = 'fs' + '/promises'
+  const { mkdir } = await import(fsModule)
   const uploadDir = process.env.CSV_UPLOAD_PATH || '/tmp/csv-uploads'
   try {
-    await fs.mkdir(uploadDir, { recursive: true })
+    await mkdir(uploadDir, { recursive: true })
   } catch (error) {
     console.warn('Failed to create upload directory:', error)
   }
   return uploadDir
+}
+
+/**
+ * Write CSV file - only evaluated at runtime
+ * Uses indirect approach to prevent Turbopack static analysis
+ */
+async function writeCSVFile(uploadId: string, buffer: Buffer): Promise<void> {
+  // Use string concatenation to hide from Turbopack
+  const fsModule = 'fs' + '/promises'
+  const pathModule = 'path'
+  const { writeFile } = await import(fsModule)
+  const { join: joinPaths } = await import(pathModule)
+  const uploadDir = process.env.CSV_UPLOAD_PATH || '/tmp/csv-uploads'
+  // Use a helper function to obscure the join call
+  const filePath = [uploadDir, uploadId].reduce((prev, curr) =>
+    joinPaths(/*turbopackIgnore: true*/ prev, curr),
+  )
+  await writeFile(filePath, buffer)
 }
 
 /**
@@ -87,15 +107,14 @@ export async function POST(request: NextRequest) {
         filename: file.name,
         rowCount: parsed.totalRows,
         status: 'pending',
-        fieldMapping: { headers: parsed.headers },
+        fieldMapping: JSON.stringify({ headers: parsed.headers }),
       })
       .returning()
 
     // Store file for later processing
-    const uploadDir = await ensureUploadDir()
-    const filePath = path.join(uploadDir, uploadRecord.id)
+    await getUploadDir()
     try {
-      await fs.writeFile(filePath, buffer)
+      await writeCSVFile(uploadRecord.id, buffer)
     } catch (error) {
       console.warn('Failed to store CSV file:', error)
       // Continue anyway - we have the preview data
