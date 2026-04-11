@@ -35,22 +35,11 @@ export function QuickActionsCard({ hasLocations }: QuickActionsCardProps) {
         <CardTitle>Quick Actions</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-3 md:grid-cols-3">
-          {actions.map((action) => (
-            <Link
-              key={action.label}
-              href={action.href}
-              className={`group rounded-lg border p-4 transition-colors ${
-                action.disabled
-                  ? 'border-muted-foreground/20 bg-muted/50 text-muted-foreground cursor-not-allowed'
-                  : 'border-input bg-card hover:border-primary/50 hover:bg-primary/5'
-              }`}
-              onClick={(e) => {
-                if (action.disabled) e.preventDefault()
-              }}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
+        <div className="flex flex-col gap-3">
+          {actions.map((action) => {
+            const content = (
+              <div className="flex h-full flex-col justify-between">
+                <div>
                   <p
                     className={`font-semibold ${
                       action.disabled
@@ -69,18 +58,41 @@ export function QuickActionsCard({ hasLocations }: QuickActionsCardProps) {
                   >
                     {action.description}
                   </p>
+                </div>
+                <div className="flex items-center justify-between pt-3">
                   {action.disabled && (
-                    <p className="text-muted-foreground mt-2 text-xs">
+                    <p className="text-muted-foreground text-xs">
                       Create a location first
                     </p>
                   )}
+                  {!action.disabled && (
+                    <ArrowRight className="text-primary ml-auto h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  )}
                 </div>
-                {!action.disabled && (
-                  <ArrowRight className="text-primary mt-1 ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                )}
               </div>
-            </Link>
-          ))}
+            )
+
+            if (action.disabled) {
+              return (
+                <div
+                  key={action.label}
+                  className="group border-muted-foreground/20 bg-muted/50 text-muted-foreground rounded-lg border p-4"
+                >
+                  {content}
+                </div>
+              )
+            }
+
+            return (
+              <Link
+                key={action.label}
+                href={action.href}
+                className="group border-input bg-card hover:border-primary/50 hover:bg-primary/5 rounded-lg border p-4 transition-all hover:shadow-sm"
+              >
+                {content}
+              </Link>
+            )
+          })}
         </div>
       </CardContent>
     </Card>
