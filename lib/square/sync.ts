@@ -133,8 +133,9 @@ export async function triggerBackgroundSync(
   }
 
   const conn = connection[0]
+  const { createSquareClient } = await import('./client')
   const syncManager = new SquareSyncManager(
-    new (require('./client').createSquareClient)(),
+    createSquareClient(),
     conn.locationId,
   )
 

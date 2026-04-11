@@ -144,7 +144,7 @@ John,john@example.com
     it('should handle 50MB file size limit in API (tested separately in route)', () => {
       // This is enforced at the API level, not in the parser
       // The parser should handle large buffers without crashing
-      const largeContent = 'Name,Email\n'
+      let largeContent = 'Name,Email\n'
       for (let i = 0; i < 100000; i++) {
         largeContent += `User${i},user${i}@example.com\n`
       }

@@ -1,4 +1,8 @@
-import { SquareTokenResponse, SquareCatalogObject } from './types'
+import {
+  SquareTokenResponse,
+  SquareCatalogObject,
+  PantryIQTransaction,
+} from './types'
 
 const SQUARE_API_BASE = 'https://connect.squareup.com'
 
@@ -125,7 +129,9 @@ export class SquareClient {
 
     if (!merchantResponse.ok) {
       const error = await merchantResponse.json()
-      throw new Error(`Failed to fetch merchant info: ${error.errors?.[0]?.detail}`)
+      throw new Error(
+        `Failed to fetch merchant info: ${error.errors?.[0]?.detail}`,
+      )
     }
 
     const merchantData = await merchantResponse.json()
@@ -170,76 +176,6 @@ export class SquareClient {
         }
 
         const date = new Date(order.created_at)
-
-        if (order.line_items && Array.isArray(order.line_items)) {
-          for (const item of order.line_items) {
-            const qty = parseInt(item.quantity, 10) || 1
-            const revenue = item.gross_sales_money?.amount
-              ? item.gross_sales_money.amount / 100
-              : 0
-
-            transactions.push({
-              locationId: '', // Will be set by caller
-              date,
-              item: item.name || 'Unknown Item',
-              qty,
-              revenue,
-              source: 'square',
-              sourceId: `${order.id}:${item.uid}`,
-            })
-          }
-        }
-      }
-    }
-
-    return transactions
-  }
-
-    const merchantData = await merchantResponse.json()
-    const merchantId = merchantData.merchants?.[0]?.id
-
-    if (!merchantId) {
-      throw new Error('No merchant found for access token')
-    }
-
-    // Fetch orders/transactions
-    const params = new URLSearchParams({
-      limit: '100',
-      sort_order: 'DESC',
-      ...(since && {
-        begin_time: since.toISOString(),
-      }),
-    })
-
-    const ordersResponse = await fetch(
-      `${apiBase}/v2/orders?${params.toString()}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Square-Version': '2024-01-18',
-        },
-      },
-    )
-
-    if (!ordersResponse.ok) {
-      const error = await ordersResponse.json()
-      throw new Error(`Failed to fetch orders: ${error.errors?.[0]?.detail}`)
-    }
-
-    const ordersData = await ordersResponse.json()
-    const transactions: PantryIQTransaction[] = []
-
-    // Normalize Square orders to PantryIQ transactions
-    if (ordersData.orders && Array.isArray(ordersData.orders)) {
-      for (const order of ordersData.orders) {
-        if (order.state !== 'COMPLETED' && order.state !== 'OPEN') {
-          continue
-        }
-
-        const date = new Date(order.created_at)
-        const total = order.total_money?.amount
-          ? order.total_money.amount / 100
-          : 0 // Square uses cents
 
         if (order.line_items && Array.isArray(order.line_items)) {
           for (const item of order.line_items) {

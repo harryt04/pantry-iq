@@ -159,11 +159,9 @@ export function SquareConnect({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <img
-            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect fill='%236C63FF' width='24' height='24'/%3E%3Ctext x='50%25' y='50%25' font-size='14' fill='white' text-anchor='middle' dy='.3em' font-weight='bold'%3ES%3C/text%3E%3C/svg%3E"
-            alt="Square"
-            className="h-6 w-6"
-          />
+          <div className="flex h-6 w-6 items-center justify-center rounded bg-purple-600 text-xs font-bold text-white">
+            S
+          </div>
           Connect Square
         </CardTitle>
       </CardHeader>

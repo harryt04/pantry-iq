@@ -1,11 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { SquareClient, createSquareClient } from '@/lib/square/client'
 import { encrypt, decrypt } from '@/lib/square/encryption'
-import type {
-  SquareTokenResponse,
-  SquareTransaction,
-  PantryIQTransaction,
-} from '@/lib/square/types'
+import type { SquareTokenResponse } from '@/lib/square/types'
 
 describe('SquareClient', () => {
   let client: SquareClient
@@ -66,7 +62,7 @@ describe('SquareClient', () => {
       global.fetch = vi.fn().mockResolvedValueOnce({
         ok: true,
         json: async () => mockResponse,
-      })
+      } as Response)
 
       const result = await client.exchangeCodeForToken('auth-code-123')
 
@@ -123,14 +119,15 @@ describe('SquareClient', () => {
       }
 
       global.fetch = vi.fn()
-      ;(global.fetch as any).mockResolvedValueOnce({
+      const fetchMock = global.fetch as ReturnType<typeof vi.fn>
+      fetchMock.mockResolvedValueOnce({
         ok: true,
         json: async () => mockMerchantResponse,
-      })
-      ;(global.fetch as any).mockResolvedValueOnce({
+      } as Response)
+      fetchMock.mockResolvedValueOnce({
         ok: true,
         json: async () => mockOrdersResponse,
-      })
+      } as Response)
 
       const transactions = await client.getTransactions('access-token-123')
 
@@ -168,14 +165,15 @@ describe('SquareClient', () => {
       }
 
       global.fetch = vi.fn()
-      ;(global.fetch as any).mockResolvedValueOnce({
+      const fetchMock = global.fetch as ReturnType<typeof vi.fn>
+      fetchMock.mockResolvedValueOnce({
         ok: true,
         json: async () => mockMerchantResponse,
-      })
-      ;(global.fetch as any).mockResolvedValueOnce({
+      } as Response)
+      fetchMock.mockResolvedValueOnce({
         ok: true,
         json: async () => mockOrdersResponse,
-      })
+      } as Response)
 
       const transactions = await client.getTransactions('access-token-123')
 
