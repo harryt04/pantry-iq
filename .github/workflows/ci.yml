@@ -3,12 +3,18 @@ name: CI
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
 
 env:
   NODE_VERSION: '20'
@@ -22,6 +28,8 @@ env:
   NEXT_PUBLIC_BETTER_AUTH_URL: http://localhost:3000
   NEXT_PUBLIC_POSTHOG_KEY: ''
   NEXT_PUBLIC_POSTHOG_HOST: https://us.i.posthog.com
+  # Stub LLM keys so Next.js build doesn't fail on missing env vars.
+  # The ai-review job overrides ANTHROPIC_API_KEY with the real secret.
   OPENAI_API_KEY: stub
   ANTHROPIC_API_KEY: stub
   GOOGLE_GENERATIVE_AI_API_KEY: stub
@@ -205,3 +213,27 @@ jobs:
           name: playwright-html-report
           path: playwright-report/
           retention-days: 14
+
+  # ─────────────────────────────────────────────
+  # Job 6: AI code review (PR-Agent, Anthropic)
+  # Only runs on pull requests, only when all CI
+  # jobs have fully passed.
+  # ─────────────────────────────────────────────
+  ai-review:
+    name: AI Code Review
+    runs-on: ubuntu-latest
+    # Only meaningful on PRs; skip direct pushes to main
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+    # Gate on every other job — review only fires when the full suite passes
+    needs: [lint, build, unit-tests, e2e-tests]
+    steps:
+      - name: Run PR-Agent (Anthropic Claude)
+        uses: Codium-ai/pr-agent@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          config.model: claude-sonnet-4-20250514
+          config.model_turbo: claude-haiku-4-20250514
+          PR_AGENT.PR_REVIEWER: 'true'
+          PR_AGENT.PR_CODE_SUGGESTIONS: 'true'
+          PR_AGENT.PR_DESCRIPTION: 'true'
