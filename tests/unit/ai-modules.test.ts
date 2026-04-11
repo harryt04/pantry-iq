@@ -1,4 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  type Mock,
+} from 'vitest'
 
 // Mock the database module - factory function is hoisted
 vi.mock('@/db', () => {
@@ -45,7 +53,7 @@ describe('AI Modules', () => {
   describe('buildContextData', () => {
     describe('buildContextData() aggregates transactions, weather, places into structured context', () => {
       it('should return empty object when all data sources are empty', async () => {
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
 
         mockDb.select.mockReturnValue({
           where: vi.fn().mockResolvedValue([]),
@@ -63,7 +71,7 @@ describe('AI Modules', () => {
       })
 
       it('should handle daysBack parameter correctly', async () => {
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
 
         mockDb.select.mockReturnValue({
           where: vi.fn().mockResolvedValue([]),
@@ -83,7 +91,7 @@ describe('AI Modules', () => {
       })
 
       it('should use default 30 days when daysBack not provided', async () => {
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
 
         mockDb.select.mockReturnValue({
           where: vi.fn().mockResolvedValue([]),
@@ -101,7 +109,7 @@ describe('AI Modules', () => {
       })
 
       it('should handle database connection errors gracefully', async () => {
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
 
         mockDb.select.mockImplementation(() => {
           throw new Error('Database connection failed')
@@ -116,7 +124,7 @@ describe('AI Modules', () => {
 
     describe('buildContextData() handles empty data sets gracefully', () => {
       it('should return empty object when transactions are empty', async () => {
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
 
         mockDb.select.mockReturnValue({
           where: vi.fn().mockResolvedValue([]),
@@ -134,7 +142,7 @@ describe('AI Modules', () => {
       })
 
       it('should gracefully handle null location', async () => {
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
 
         mockDb.select.mockReturnValue({
           where: vi.fn().mockResolvedValue([]),
@@ -152,7 +160,7 @@ describe('AI Modules', () => {
       })
 
       it('should handle all query errors gracefully', async () => {
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
 
         mockDb.select.mockImplementation(() => {
           throw new Error('Query failed')
@@ -172,7 +180,7 @@ describe('AI Modules', () => {
   describe('Stream Handler', () => {
     describe('persistStreamedMessage() saves assistant messages to database', () => {
       it('should persist assistant message with all required fields', async () => {
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
         const mockValues = vi.fn().mockReturnThis()
         const mockReturning = vi.fn().mockResolvedValue([
           {
@@ -220,7 +228,7 @@ describe('AI Modules', () => {
       })
 
       it('should throw error when insert returns no rows', async () => {
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
         const mockValues = vi.fn().mockReturnThis()
         const mockReturning = vi.fn().mockResolvedValue([])
 
@@ -246,7 +254,7 @@ describe('AI Modules', () => {
       })
 
       it('should throw error when insert fails', async () => {
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
         const mockValues = vi.fn().mockReturnThis()
         const mockReturning = vi
           .fn()
@@ -274,7 +282,7 @@ describe('AI Modules', () => {
       })
 
       it('should preserve token counts accurately', async () => {
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
         const mockValues = vi.fn().mockReturnThis()
         const mockReturning = vi.fn().mockResolvedValue([
           {
@@ -317,7 +325,7 @@ describe('AI Modules', () => {
 
       it('should handle long streamed content', async () => {
         const longContent = 'A'.repeat(10000)
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
         const mockValues = vi.fn().mockReturnThis()
         const mockReturning = vi.fn().mockResolvedValue([
           {
@@ -354,7 +362,7 @@ describe('AI Modules', () => {
       })
 
       it('should handle different model types', async () => {
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
         const mockValues = vi.fn().mockReturnThis()
         const mockReturning = vi.fn().mockResolvedValue([
           {
@@ -393,7 +401,7 @@ describe('AI Modules', () => {
 
     describe('persistUserMessage() saves user messages to database', () => {
       it('should persist user message with only conversationId and content', async () => {
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
         const mockValues = vi.fn().mockReturnThis()
         const mockReturning = vi.fn().mockResolvedValue([
           {
@@ -429,7 +437,7 @@ describe('AI Modules', () => {
       })
 
       it('should not include modelUsed or tokens for user messages', async () => {
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
         const mockValues = vi.fn().mockReturnThis()
         const mockReturning = vi.fn().mockResolvedValue([
           {
@@ -457,7 +465,7 @@ describe('AI Modules', () => {
       })
 
       it('should throw error when user message insert fails', async () => {
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
         const mockValues = vi.fn().mockReturnThis()
         const mockReturning = vi
           .fn()
@@ -476,7 +484,7 @@ describe('AI Modules', () => {
       })
 
       it('should throw error when no rows returned from insert', async () => {
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
         const mockValues = vi.fn().mockReturnThis()
         const mockReturning = vi.fn().mockResolvedValue([])
 
@@ -494,7 +502,7 @@ describe('AI Modules', () => {
 
       it('should handle long user messages', async () => {
         const longMessage = 'Q'.repeat(5000)
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
         const mockValues = vi.fn().mockReturnThis()
         const mockReturning = vi.fn().mockResolvedValue([
           {
@@ -520,7 +528,7 @@ describe('AI Modules', () => {
 
       it('should handle messages with special characters', async () => {
         const specialMessage = 'Test: 🎯 @user #tag $200 %discount & more!'
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
         const mockValues = vi.fn().mockReturnThis()
         const mockReturning = vi.fn().mockResolvedValue([
           {
@@ -550,7 +558,7 @@ describe('AI Modules', () => {
       })
 
       it('should handle multiple messages in sequence', async () => {
-        const mockDb = db as any
+        const mockDb = db as unknown as Record<string, unknown>
         const mockValues = vi.fn().mockReturnThis()
         const mockReturning = vi
           .fn()

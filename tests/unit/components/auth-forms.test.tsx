@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { SignupForm } from '@/components/auth/signup-form'
 import { LoginForm } from '@/components/auth/login-form'
@@ -112,7 +112,7 @@ describe('SignupForm Component', () => {
     })
 
     it('should not show password mismatch error when passwords match', async () => {
-      ;(authClient.signUp.email as any).mockResolvedValueOnce({
+      ;(authClient.signUp.email as unknown as Mock).mockResolvedValueOnce({
         error: null,
       })
 
@@ -145,7 +145,7 @@ describe('SignupForm Component', () => {
 
   describe('Loading State', () => {
     it('should show loading state during form submission', async () => {
-      ;(authClient.signUp.email as any).mockImplementationOnce(
+      ;(authClient.signUp.email as unknown as Mock).mockImplementationOnce(
         () =>
           new Promise((resolve) => {
             setTimeout(() => resolve({ error: null }), 100)
@@ -181,7 +181,7 @@ describe('SignupForm Component', () => {
     })
 
     it('should disable submit button during loading', async () => {
-      ;(authClient.signUp.email as any).mockImplementationOnce(
+      ;(authClient.signUp.email as unknown as Mock).mockImplementationOnce(
         () =>
           new Promise((resolve) => {
             setTimeout(() => resolve({ error: null }), 100)
@@ -218,7 +218,7 @@ describe('SignupForm Component', () => {
     })
 
     it('should disable input fields during loading', async () => {
-      ;(authClient.signUp.email as any).mockImplementationOnce(
+      ;(authClient.signUp.email as unknown as Mock).mockImplementationOnce(
         () =>
           new Promise((resolve) => {
             setTimeout(() => resolve({ error: null }), 100)
@@ -257,7 +257,7 @@ describe('SignupForm Component', () => {
 
   describe('Server Error Messages', () => {
     it('should display server error message when signup fails', async () => {
-      ;(authClient.signUp.email as any).mockResolvedValueOnce({
+      ;(authClient.signUp.email as unknown as Mock).mockResolvedValueOnce({
         error: { message: 'An error occurred' },
       })
 
@@ -288,7 +288,7 @@ describe('SignupForm Component', () => {
     })
 
     it('should display custom message for email already taken', async () => {
-      ;(authClient.signUp.email as any).mockResolvedValueOnce({
+      ;(authClient.signUp.email as unknown as Mock).mockResolvedValueOnce({
         error: { message: 'User with this email already exists' },
       })
 
@@ -323,7 +323,7 @@ describe('SignupForm Component', () => {
     })
 
     it('should display error from catch block for unexpected errors', async () => {
-      ;(authClient.signUp.email as any).mockRejectedValueOnce(
+      ;(authClient.signUp.email as unknown as Mock).mockRejectedValueOnce(
         new Error('Network error'),
       )
 
@@ -354,7 +354,7 @@ describe('SignupForm Component', () => {
     })
 
     it('should show error message with role="alert"', async () => {
-      ;(authClient.signUp.email as any).mockResolvedValueOnce({
+      ;(authClient.signUp.email as unknown as Mock).mockResolvedValueOnce({
         error: { message: 'Test error' },
       })
 
@@ -388,7 +388,7 @@ describe('SignupForm Component', () => {
 
   describe('Successful Signup', () => {
     it('should call authClient.signUp.email with correct data', async () => {
-      ;(authClient.signUp.email as any).mockResolvedValueOnce({
+      ;(authClient.signUp.email as unknown as Mock).mockResolvedValueOnce({
         error: null,
       })
 
@@ -423,7 +423,7 @@ describe('SignupForm Component', () => {
     })
 
     it('should redirect to dashboard on successful signup', async () => {
-      ;(authClient.signUp.email as any).mockResolvedValueOnce({
+      ;(authClient.signUp.email as unknown as Mock).mockResolvedValueOnce({
         error: null,
       })
 
@@ -454,7 +454,7 @@ describe('SignupForm Component', () => {
     })
 
     it('should capture analytics event on successful signup', async () => {
-      ;(authClient.signUp.email as any).mockResolvedValueOnce({
+      ;(authClient.signUp.email as unknown as Mock).mockResolvedValueOnce({
         error: null,
       })
 
@@ -525,7 +525,7 @@ describe('LoginForm Component', () => {
 
   describe('Loading State', () => {
     it('should show loading state during form submission', async () => {
-      ;(authClient.signIn.email as any).mockImplementationOnce(
+      ;(authClient.signIn.email as unknown as Mock).mockImplementationOnce(
         () =>
           new Promise((resolve) => {
             setTimeout(() => resolve({ error: null }), 100)
@@ -553,7 +553,7 @@ describe('LoginForm Component', () => {
     })
 
     it('should disable submit button during loading', async () => {
-      ;(authClient.signIn.email as any).mockImplementationOnce(
+      ;(authClient.signIn.email as unknown as Mock).mockImplementationOnce(
         () =>
           new Promise((resolve) => {
             setTimeout(() => resolve({ error: null }), 100)
@@ -582,7 +582,7 @@ describe('LoginForm Component', () => {
     })
 
     it('should disable input fields during loading', async () => {
-      ;(authClient.signIn.email as any).mockImplementationOnce(
+      ;(authClient.signIn.email as unknown as Mock).mockImplementationOnce(
         () =>
           new Promise((resolve) => {
             setTimeout(() => resolve({ error: null }), 100)
@@ -611,7 +611,7 @@ describe('LoginForm Component', () => {
 
   describe('Server Error Messages', () => {
     it('should display server error message when signin fails', async () => {
-      ;(authClient.signIn.email as any).mockResolvedValueOnce({
+      ;(authClient.signIn.email as unknown as Mock).mockResolvedValueOnce({
         error: { message: 'Invalid credentials' },
       })
 
@@ -634,7 +634,7 @@ describe('LoginForm Component', () => {
     })
 
     it('should display default error message if error object is missing message', async () => {
-      ;(authClient.signIn.email as any).mockResolvedValueOnce({
+      ;(authClient.signIn.email as unknown as Mock).mockResolvedValueOnce({
         error: {},
       })
 
@@ -657,7 +657,7 @@ describe('LoginForm Component', () => {
     })
 
     it('should display error from catch block for unexpected errors', async () => {
-      ;(authClient.signIn.email as any).mockRejectedValueOnce(
+      ;(authClient.signIn.email as unknown as Mock).mockRejectedValueOnce(
         new Error('Network error'),
       )
 
@@ -680,7 +680,7 @@ describe('LoginForm Component', () => {
     })
 
     it('should show error message with role="alert"', async () => {
-      ;(authClient.signIn.email as any).mockResolvedValueOnce({
+      ;(authClient.signIn.email as unknown as Mock).mockResolvedValueOnce({
         error: { message: 'Test error' },
       })
 
@@ -706,7 +706,7 @@ describe('LoginForm Component', () => {
 
   describe('Successful Login', () => {
     it('should call authClient.signIn.email with correct credentials', async () => {
-      ;(authClient.signIn.email as any).mockResolvedValueOnce({
+      ;(authClient.signIn.email as unknown as Mock).mockResolvedValueOnce({
         error: null,
       })
 
@@ -732,7 +732,7 @@ describe('LoginForm Component', () => {
     })
 
     it('should redirect to dashboard on successful login', async () => {
-      ;(authClient.signIn.email as any).mockResolvedValueOnce({
+      ;(authClient.signIn.email as unknown as Mock).mockResolvedValueOnce({
         error: null,
       })
 
@@ -755,7 +755,7 @@ describe('LoginForm Component', () => {
     })
 
     it('should capture analytics event on successful login', async () => {
-      ;(authClient.signIn.email as any).mockResolvedValueOnce({
+      ;(authClient.signIn.email as unknown as Mock).mockResolvedValueOnce({
         error: null,
       })
 
