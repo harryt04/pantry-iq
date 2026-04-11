@@ -52,6 +52,9 @@ export function LoginForm() {
   return (
     <Card>
       <CardHeader>
+        <div className="mb-2 inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900 dark:bg-amber-900 dark:text-amber-100">
+          Beta
+        </div>
         <CardTitle>Welcome Back</CardTitle>
         <CardDescription>Sign in to your PantryIQ account</CardDescription>
       </CardHeader>

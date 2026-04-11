@@ -116,6 +116,9 @@ export function SignupForm() {
   return (
     <Card>
       <CardHeader>
+        <div className="mb-2 inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900 dark:bg-amber-900 dark:text-amber-100">
+          Beta
+        </div>
         <CardTitle>Create Account</CardTitle>
         <CardDescription>Get started with PantryIQ today</CardDescription>
       </CardHeader>
