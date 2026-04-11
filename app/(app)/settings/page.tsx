@@ -1,7 +1,92 @@
+'use client'
+
+import { useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import {
+  LocationForm,
+  LocationFormData,
+} from '@/components/settings/location-form'
+import { LocationList } from '@/components/settings/location-list'
+import { useSession } from '@/lib/auth-client'
+
+interface Location {
+  id: string
+  name: string
+  zipCode: string
+  address?: string
+  timezone?: string
+  type?: string
+  createdAt: string
+}
 
 export default function SettingsPage() {
+  const { data: session } = useSession()
+  const [editingLocation, setEditingLocation] = useState<Location | null>(null)
+  const [showForm, setShowForm] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleAddNew = () => {
+    setEditingLocation(null)
+    setShowForm(true)
+  }
+
+  const handleEdit = (location: Location) => {
+    setEditingLocation(location)
+    setShowForm(true)
+  }
+
+  const handleFormSubmit = async (data: LocationFormData) => {
+    setIsLoading(true)
+    try {
+      if (editingLocation) {
+        // Update existing location
+        const response = await fetch(`/api/locations/${editingLocation.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        })
+
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || 'Failed to update location')
+        }
+      } else {
+        // Create new location
+        const response = await fetch('/api/locations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        })
+
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || 'Failed to create location')
+        }
+      }
+
+      setShowForm(false)
+      setEditingLocation(null)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleDelete = async (locationId: string) => {
+    const response = await fetch(`/api/locations/${locationId}`, {
+      method: 'DELETE',
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to delete location')
+    }
+  }
+
+  const handleCancel = () => {
+    setShowForm(false)
+    setEditingLocation(null)
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -19,26 +104,45 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div>
               <label className="text-sm font-medium">Email</label>
-              <p className="text-muted-foreground mt-1">user@example.com</p>
+              <p className="text-muted-foreground mt-1">
+                {session?.user.email}
+              </p>
             </div>
             <div>
-              <label className="text-sm font-medium">Restaurant Name</label>
-              <p className="text-muted-foreground mt-1">My Restaurant</p>
+              <label className="text-sm font-medium">Name</label>
+              <p className="text-muted-foreground mt-1">
+                {session?.user.name || 'Not set'}
+              </p>
             </div>
-            <Button variant="outline">Edit Profile</Button>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Coming Soon</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              Settings features will be available soon. Reference: WU-2.1
-            </p>
-          </CardContent>
-        </Card>
+        {showForm && (
+          <LocationForm
+            initialData={
+              editingLocation
+                ? {
+                    id: editingLocation.id,
+                    name: editingLocation.name,
+                    zipCode: editingLocation.zipCode,
+                    address: editingLocation.address,
+                    timezone: editingLocation.timezone,
+                    type: editingLocation.type,
+                  }
+                : undefined
+            }
+            onSubmit={handleFormSubmit}
+            onCancel={handleCancel}
+            isLoading={isLoading}
+          />
+        )}
+
+        <LocationList
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onAddNew={handleAddNew}
+          isLoading={isLoading}
+        />
       </div>
     </div>
   )

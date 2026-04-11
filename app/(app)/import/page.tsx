@@ -1,35 +1,52 @@
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+'use client'
 
-export default function ImportPage() {
+import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
+import { CSVUpload } from '@/components/import/csv-upload'
+import { SquareConnect } from '@/components/import/square-connect'
+
+function ImportContent() {
+  const searchParams = useSearchParams()
+  const locationId = searchParams.get('location_id')
+
+  if (!locationId) {
+    return (
+      <div className="border-destructive bg-destructive/10 rounded-lg border p-4">
+        <p className="text-destructive text-sm font-medium">
+          Missing location ID. Please provide a valid location_id query
+          parameter.
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
+        <h2 className="mb-4 text-xl font-semibold">POS Integration</h2>
+        <SquareConnect locationId={locationId} />
+      </div>
+      <div>
+        <h2 className="mb-4 text-xl font-semibold">Manual CSV Upload</h2>
+        <CSVUpload locationId={locationId} />
+      </div>
+    </div>
+  )
+}
+
+export default function ImportPage() {
+  return (
+    <div className="mx-auto max-w-2xl space-y-6 py-6">
+      <div>
         <h1 className="text-3xl font-bold tracking-tight">Import Data</h1>
-        <p className="text-muted-foreground mt-2">
-          Import your inventory and order data to PantryIQ.
+        <p className="mt-2 text-gray-600 dark:text-gray-400">
+          Upload a CSV or TSV file to import inventory data into your location.
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload CSV File</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="border-muted-foreground flex items-center justify-center rounded-lg border-2 border-dashed p-12">
-            <div className="text-center">
-              <p className="text-muted-foreground mb-2">
-                Drag and drop your CSV file here, or click to browse
-              </p>
-              <Button variant="outline">Select File</Button>
-            </div>
-          </div>
-          <p className="text-muted-foreground text-sm">
-            Import features will be available soon. References: WU-2.2, WU-2.3,
-            WU-2.4
-          </p>
-        </CardContent>
-      </Card>
+      <Suspense fallback={<div>Loading...</div>}>
+        <ImportContent />
+      </Suspense>
     </div>
   )
 }
