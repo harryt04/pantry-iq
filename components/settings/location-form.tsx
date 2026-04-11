@@ -1,5 +1,6 @@
 'use client'
 
+import type { ChangeEvent, FormEvent } from 'react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -53,7 +54,7 @@ export function LocationForm({
   const [error, setError] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
@@ -62,7 +63,7 @@ export function LocationForm({
     setError('')
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
     setIsSubmitting(true)

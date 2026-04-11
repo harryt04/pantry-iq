@@ -22,7 +22,10 @@ export async function GET(
     const { location: locationId } = await params
 
     if (!locationId) {
-      return ApiError.badRequest('Location ID is required', 'MISSING_LOCATION_ID')
+      return ApiError.badRequest(
+        'Location ID is required',
+        'MISSING_LOCATION_ID',
+      )
     }
 
     // Get location from database to extract coordinates

@@ -8,7 +8,7 @@ import {
   posConnections,
   conversations,
 } from '@/db/schema'
-import { eq, and, count, desc, sql } from 'drizzle-orm'
+import { eq, and, count, desc, sql, inArray } from 'drizzle-orm'
 
 interface DashboardData {
   locations: Array<{
@@ -50,14 +50,22 @@ export async function GET(req: NextRequest) {
       .from(locations)
       .where(eq(locations.userId, session.user.id))
 
+    // Get user's location IDs for scoping queries
+    const userLocationIds = userLocations.map((loc) => loc.id)
+
     // Aggregate transaction counts by location in a single query
+    // Only include transactions from user's locations
     const transactionCounts = await db
       .select({
         locationId: transactions.locationId,
         count: count().as('count'),
       })
       .from(transactions)
-      .where(eq(transactions.userId, session.user.id))
+      .where(
+        userLocationIds.length > 0
+          ? inArray(transactions.locationId, userLocationIds)
+          : eq(sql`1`, sql`0`), // Return empty result if user has no locations
+      )
       .groupBy(transactions.locationId)
 
     const txCountMap = Object.fromEntries(
@@ -65,37 +73,54 @@ export async function GET(req: NextRequest) {
     )
 
     // Aggregate CSV upload counts by location in a single query
+    // Only include uploads from user's locations
     const csvCounts = await db
       .select({
         locationId: csvUploads.locationId,
         count: count().as('count'),
       })
       .from(csvUploads)
+      .where(
+        userLocationIds.length > 0
+          ? inArray(csvUploads.locationId, userLocationIds)
+          : eq(sql`1`, sql`0`), // Return empty result if user has no locations
+      )
       .groupBy(csvUploads.locationId)
 
     const csvCountMap = Object.fromEntries(
       csvCounts.map((cc) => [cc.locationId, cc.count || 0]),
     )
 
-    // Fetch all POS connections in a single query
-    const allPosConnections = await db.select().from(posConnections)
+    // Fetch POS connections for user's locations in a single query
+    const allPosConnections = await db
+      .select()
+      .from(posConnections)
+      .where(
+        userLocationIds.length > 0
+          ? inArray(posConnections.locationId, userLocationIds)
+          : eq(sql`1`, sql`0`), // Return empty result if user has no locations
+      )
     const posMap = Object.fromEntries(
       allPosConnections.map((pos) => [pos.locationId, pos.syncState || null]),
     )
 
-    // Fetch first conversation per location in a single query
-    const allConversations = await db.select().from(conversations)
+    // Fetch conversations for user's locations in a single query
+    const allConversations = await db
+      .select()
+      .from(conversations)
+      .where(
+        userLocationIds.length > 0
+          ? inArray(conversations.locationId, userLocationIds)
+          : eq(sql`1`, sql`0`), // Return empty result if user has no locations
+      )
     const convMap = Object.fromEntries(
       allConversations
-        .reduce(
-          (acc, conv) => {
-            if (!acc.has(conv.locationId)) {
-              acc.set(conv.locationId, conv.id)
-            }
-            return acc
-          },
-          new Map<string, string>(),
-        )
+        .reduce((acc, conv) => {
+          if (!acc.has(conv.locationId)) {
+            acc.set(conv.locationId, conv.id)
+          }
+          return acc
+        }, new Map<string, string>())
         .entries(),
     )
 

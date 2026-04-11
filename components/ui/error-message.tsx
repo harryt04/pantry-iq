@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 import { Button } from './button'
 
@@ -8,7 +9,7 @@ export interface ErrorMessageProps {
   code?: string
   onRetry?: () => void
   showRetry?: boolean
-  icon?: React.ReactNode
+  icon?: ReactNode
 }
 
 export function ErrorMessage({

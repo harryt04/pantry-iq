@@ -1,9 +1,12 @@
 /**
  * Simple CSV Parser Utility
- * Used for parsing and validating generated CSV data
+ * Used for parsing and validating generated CSV data (test data generator)
+ *
+ * NOTE: This is for GENERATED CSV data only (test fixtures).
+ * For parsing UPLOADED CSV files, use `parseCSV` from `lib/csv/parser.ts` instead.
  */
 
-export interface ParsedCSV {
+export interface ParsedGeneratedCSV {
   headers: string[]
   rows: Record<string, string>[]
   rawRows: string[][]
@@ -11,8 +14,9 @@ export interface ParsedCSV {
 
 /**
  * Parse a CSV string into headers and rows
+ * Used for validating generated test CSV data
  */
-export function parseCSV(csvContent: string): ParsedCSV {
+export function parseGeneratedCSV(csvContent: string): ParsedGeneratedCSV {
   const lines = csvContent.trim().split('\n')
 
   if (lines.length === 0) {
@@ -35,6 +39,14 @@ export function parseCSV(csvContent: string): ParsedCSV {
   }
 
   return { headers, rows, rawRows }
+}
+
+/**
+ * Legacy alias for backward compatibility. Use parseGeneratedCSV instead.
+ * @deprecated Use parseGeneratedCSV instead
+ */
+export function parseCSV(csvContent: string): ParsedGeneratedCSV {
+  return parseGeneratedCSV(csvContent)
 }
 
 /**
@@ -75,7 +87,7 @@ export function parseCSVLine(line: string): string[] {
  * Validate CSV structure
  */
 export function validateCSVStructure(
-  parsed: ParsedCSV,
+  parsed: ParsedGeneratedCSV,
   expectedHeaders: string[],
 ): { valid: boolean; errors: string[] } {
   const errors: string[] = []

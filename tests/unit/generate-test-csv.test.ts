@@ -3,7 +3,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { execSync } from 'child_process'
 import {
-  parseCSV,
+  parseGeneratedCSV,
   validateCSVStructure,
   isValidDate,
   isValidTime,
@@ -136,7 +136,7 @@ describe('Test Data Generation Script', () => {
         { cwd: process.cwd(), encoding: 'utf-8' },
       ).trim()
 
-      const parsed = parseCSV(output)
+      const parsed = parseGeneratedCSV(output)
       const start = parseDate(startDate)
       const end = new Date(parseDate(endDate).getTime() + 24 * 60 * 60 * 1000)
 
@@ -185,20 +185,20 @@ describe('Test Data Generation Script', () => {
     })
 
     it('should parse transaction CSV successfully', () => {
-      const parsed = parseCSV(transactionContent)
+      const parsed = parseGeneratedCSV(transactionContent)
       expect(parsed.headers).toHaveLength(TRANSACTION_HEADERS.length)
       expect(parsed.rows.length).toBeGreaterThan(0)
     })
 
     it('should have correct transaction headers', () => {
-      const parsed = parseCSV(transactionContent)
+      const parsed = parseGeneratedCSV(transactionContent)
       const validation = validateCSVStructure(parsed, TRANSACTION_HEADERS)
       expect(validation.valid).toBe(true)
       expect(validation.errors).toHaveLength(0)
     })
 
     it('should have valid transaction data types', () => {
-      const parsed = parseCSV(transactionContent)
+      const parsed = parseGeneratedCSV(transactionContent)
 
       parsed.rows.forEach((row, index) => {
         expect(isValidDate(row.Date)).toBe(true)
@@ -216,7 +216,7 @@ describe('Test Data Generation Script', () => {
     })
 
     it('should have realistic transaction values', () => {
-      const parsed = parseCSV(transactionContent)
+      const parsed = parseGeneratedCSV(transactionContent)
 
       parsed.rows.forEach((row) => {
         const quantity = parseInt(row.Quantity, 10)
@@ -237,12 +237,12 @@ describe('Test Data Generation Script', () => {
     })
 
     it('should have correct number of transaction records', () => {
-      const parsed = parseCSV(transactionContent)
+      const parsed = parseGeneratedCSV(transactionContent)
       expect(parsed.rows.length).toBeGreaterThanOrEqual(100)
     })
 
     it('transaction dates should be in reasonable range', () => {
-      const parsed = parseCSV(transactionContent)
+      const parsed = parseGeneratedCSV(transactionContent)
       const dates = parsed.rows.map((row) => parseDate(row.Date))
 
       const minDate = new Date(Math.min(...dates.map((d) => d.getTime())))
@@ -271,20 +271,20 @@ describe('Test Data Generation Script', () => {
     })
 
     it('should parse inventory CSV successfully', () => {
-      const parsed = parseCSV(inventoryContent)
+      const parsed = parseGeneratedCSV(inventoryContent)
       expect(parsed.headers).toHaveLength(INVENTORY_HEADERS.length)
       expect(parsed.rows.length).toBeGreaterThan(0)
     })
 
     it('should have correct inventory headers', () => {
-      const parsed = parseCSV(inventoryContent)
+      const parsed = parseGeneratedCSV(inventoryContent)
       const validation = validateCSVStructure(parsed, INVENTORY_HEADERS)
       expect(validation.valid).toBe(true)
       expect(validation.errors).toHaveLength(0)
     })
 
     it('should have valid inventory data types', () => {
-      const parsed = parseCSV(inventoryContent)
+      const parsed = parseGeneratedCSV(inventoryContent)
 
       parsed.rows.forEach((row) => {
         expect(isValidInteger(row.SKU)).toBe(true)
@@ -300,12 +300,12 @@ describe('Test Data Generation Script', () => {
     })
 
     it('should have correct number of inventory records', () => {
-      const parsed = parseCSV(inventoryContent)
+      const parsed = parseGeneratedCSV(inventoryContent)
       expect(parsed.rows.length).toBeGreaterThanOrEqual(100)
     })
 
     it('should have realistic inventory values', () => {
-      const parsed = parseCSV(inventoryContent)
+      const parsed = parseGeneratedCSV(inventoryContent)
 
       parsed.rows.forEach((row) => {
         const quantity = parseInt(row.Quantity, 10)
@@ -339,20 +339,20 @@ describe('Test Data Generation Script', () => {
     })
 
     it('should parse invoices CSV successfully', () => {
-      const parsed = parseCSV(invoicesContent)
+      const parsed = parseGeneratedCSV(invoicesContent)
       expect(parsed.headers).toHaveLength(INVOICES_HEADERS.length)
       expect(parsed.rows.length).toBeGreaterThan(0)
     })
 
     it('should have correct invoices headers', () => {
-      const parsed = parseCSV(invoicesContent)
+      const parsed = parseGeneratedCSV(invoicesContent)
       const validation = validateCSVStructure(parsed, INVOICES_HEADERS)
       expect(validation.valid).toBe(true)
       expect(validation.errors).toHaveLength(0)
     })
 
     it('should have valid invoices data types', () => {
-      const parsed = parseCSV(invoicesContent)
+      const parsed = parseGeneratedCSV(invoicesContent)
 
       parsed.rows.forEach((row) => {
         expect(row['Invoice Number'].length).toBeGreaterThan(0)
@@ -368,12 +368,12 @@ describe('Test Data Generation Script', () => {
     })
 
     it('should have correct number of invoice records', () => {
-      const parsed = parseCSV(invoicesContent)
+      const parsed = parseGeneratedCSV(invoicesContent)
       expect(parsed.rows.length).toBeGreaterThanOrEqual(100)
     })
 
     it('should have realistic invoice values', () => {
-      const parsed = parseCSV(invoicesContent)
+      const parsed = parseGeneratedCSV(invoicesContent)
 
       parsed.rows.forEach((row) => {
         const subtotal = parseFloat(row.Subtotal)
@@ -393,7 +393,7 @@ describe('Test Data Generation Script', () => {
     })
 
     it('should track invoice payment status correctly', () => {
-      const parsed = parseCSV(invoicesContent)
+      const parsed = parseGeneratedCSV(invoicesContent)
 
       parsed.rows.forEach((row) => {
         const totalAmount = parseFloat(row['Total Amount'])

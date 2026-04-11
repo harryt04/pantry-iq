@@ -1,5 +1,6 @@
 'use client'
 
+import type { MouseEvent } from 'react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -42,10 +43,16 @@ export function ConversationList({
 
       const { id } = await response.json()
 
-      // Track conversation creation with hashed location ID
-      captureAnalyticsEvent('conversation-started', {
-        locationId: hashLocationId(locationId),
-      })
+      // Track conversation creation with hashed location ID (non-blocking)
+      hashLocationId(locationId)
+        .then((hashedId) => {
+          captureAnalyticsEvent('conversation-started', {
+            locationId: hashedId,
+          })
+        })
+        .catch((error) => {
+          console.debug('Failed to hash location ID:', error)
+        })
 
       router.push(`/conversations/${id}`)
     } catch (error) {
@@ -53,7 +60,7 @@ export function ConversationList({
     }
   }
 
-  const handleDelete = async (conversationId: string, e: React.MouseEvent) => {
+  const handleDelete = async (conversationId: string, e: MouseEvent) => {
     e.stopPropagation()
     setDeletingId(conversationId)
 

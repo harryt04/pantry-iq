@@ -4,8 +4,10 @@
  */
 
 import { generateText } from 'ai'
-import { getProviders } from '@/lib/ai/providers'
-import { getModel } from '@/lib/ai/models'
+import { openai } from '@ai-sdk/openai'
+import { anthropic } from '@ai-sdk/anthropic'
+import { google } from '@ai-sdk/google'
+import type { LanguageModelV3 } from '@ai-sdk/provider'
 
 /**
  * Standard target fields for transaction data
@@ -121,29 +123,27 @@ export async function suggestMappings(
   headers: string[],
   sample: Record<string, string>[],
 ): Promise<FieldMapping> {
-  const providers = getProviders()
+  // Check which providers are available
+  const hasOpenAI = !!process.env.OPENAI_API_KEY
+  const hasAnthropic = !!process.env.ANTHROPIC_API_KEY
+  const hasGoogle = !!process.env.GOOGLE_GENERATIVE_AI_API_KEY
 
   // Fallback to pattern matching if no LLM available
-  if (Object.keys(providers).length === 0) {
+  if (!hasOpenAI && !hasAnthropic && !hasGoogle) {
     console.warn('No LLM providers available, using pattern matching fallback')
     return fallbackMappings(headers)
   }
 
   try {
     // Use the first available provider
-    const provider = providers.anthropic || providers.openai || providers.google
-    if (!provider) {
-      return fallbackMappings(headers)
+    let model: LanguageModelV3
+    if (hasAnthropic) {
+      model = anthropic('claude-3-5-haiku-20241022')
+    } else if (hasOpenAI) {
+      model = openai('gpt-4o-mini')
+    } else {
+      model = google('gemini-2.0-flash-lite')
     }
-
-    // Get default model for the provider
-    const modelId = providers.anthropic
-      ? 'claude-3-5-haiku-20241022'
-      : providers.openai
-        ? 'gpt-4o-mini'
-        : 'gemini-2.0-flash-lite'
-
-    const model = getModel(modelId)
 
     // Prepare sample data summary for the prompt
     const sampleSummary = sample.slice(0, 3).map((row) =>
@@ -167,7 +167,7 @@ For example: {"mapping": {"Date": "date", "Product": "item", "Quantity": "qty", 
 Always return valid JSON.`
 
     const text = await generateText({
-      model: provider,
+      model,
       prompt,
       temperature: 0.3,
     })

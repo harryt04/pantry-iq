@@ -4,14 +4,17 @@
  * Gracefully degrades if API keys are not configured
  */
 
-import { openai } from '@ai-sdk/openai'
-import { anthropic } from '@ai-sdk/anthropic'
-import { google } from '@ai-sdk/google'
+import { createOpenAI, type OpenAIProvider } from '@ai-sdk/openai'
+import { createAnthropic, type AnthropicProvider } from '@ai-sdk/anthropic'
+import {
+  createGoogleGenerativeAI,
+  type GoogleGenerativeAIProvider,
+} from '@ai-sdk/google'
 
 export interface ProviderRegistry {
-  openai?: ReturnType<typeof openai>
-  anthropic?: ReturnType<typeof anthropic>
-  google?: ReturnType<typeof google>
+  openai?: OpenAIProvider
+  anthropic?: AnthropicProvider
+  google?: GoogleGenerativeAIProvider
 }
 
 /**
@@ -24,7 +27,9 @@ export function initializeProviders(): ProviderRegistry {
   // Initialize OpenAI provider
   if (process.env.OPENAI_API_KEY) {
     try {
-      providers.openai = openai(process.env.OPENAI_API_KEY)
+      providers.openai = createOpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      })
     } catch (error) {
       console.warn('Failed to initialize OpenAI provider:', error)
     }
@@ -33,7 +38,9 @@ export function initializeProviders(): ProviderRegistry {
   // Initialize Anthropic provider
   if (process.env.ANTHROPIC_API_KEY) {
     try {
-      providers.anthropic = anthropic(process.env.ANTHROPIC_API_KEY)
+      providers.anthropic = createAnthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY,
+      })
     } catch (error) {
       console.warn('Failed to initialize Anthropic provider:', error)
     }
@@ -42,7 +49,9 @@ export function initializeProviders(): ProviderRegistry {
   // Initialize Google provider
   if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
     try {
-      providers.google = google(process.env.GOOGLE_GENERATIVE_AI_API_KEY)
+      providers.google = createGoogleGenerativeAI({
+        apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+      })
     } catch (error) {
       console.warn('Failed to initialize Google provider:', error)
     }
