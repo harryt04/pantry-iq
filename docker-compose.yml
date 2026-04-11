@@ -30,7 +30,7 @@ services:
     environment:
       ZERO_UPSTREAM_DB: postgres://postgres:postgres@postgres:5432/pantryiq
       ZERO_PORT: 8001
-      ZERO_ADMIN_PASSWORD: admin123
+      ZERO_ADMIN_PASSWORD: ${ZERO_ADMIN_PASSWORD:?ZERO_ADMIN_PASSWORD must be set}
     depends_on:
       postgres:
         condition: service_healthy

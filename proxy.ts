@@ -22,12 +22,13 @@ export async function proxy(request: NextRequest) {
       headers: request.headers,
     })
 
-    const isAuthRoute =
-      pathname.startsWith('/(auth)') ||
-      pathname === '/login' ||
-      pathname === '/signup'
+    const isAuthRoute = pathname === '/login' || pathname === '/signup'
     const isAppRoute =
-      pathname.startsWith('/(app)') || pathname === '/dashboard'
+      pathname === '/dashboard' ||
+      pathname === '/import' ||
+      pathname === '/settings' ||
+      pathname === '/conversations' ||
+      pathname.startsWith('/conversations/')
 
     // If user is authenticated
     if (session?.user) {
@@ -51,7 +52,13 @@ export async function proxy(request: NextRequest) {
   } catch (error) {
     // On error, allow the request to proceed
     // but protect app routes by default
-    if (pathname.startsWith('/(app)') || pathname === '/dashboard') {
+    if (
+      pathname === '/dashboard' ||
+      pathname === '/import' ||
+      pathname === '/settings' ||
+      pathname === '/conversations' ||
+      pathname.startsWith('/conversations/')
+    ) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
     return NextResponse.next()

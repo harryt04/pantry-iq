@@ -8,7 +8,7 @@ import {
   posConnections,
   conversations,
 } from '@/db/schema'
-import { eq, and, count, desc } from 'drizzle-orm'
+import { eq, and, count, desc, sql } from 'drizzle-orm'
 
 interface DashboardData {
   locations: Array<{
@@ -50,46 +50,65 @@ export async function GET(req: NextRequest) {
       .from(locations)
       .where(eq(locations.userId, session.user.id))
 
-    // For each location, get transaction count, CSV upload count, and POS connection status
-    const locationsData = await Promise.all(
-      userLocations.map(async (location) => {
-        // Count transactions for this location
-        const [txResult] = await db
-          .select({ count: count() })
-          .from(transactions)
-          .where(eq(transactions.locationId, location.id))
+    // Aggregate transaction counts by location in a single query
+    const transactionCounts = await db
+      .select({
+        locationId: transactions.locationId,
+        count: count().as('count'),
+      })
+      .from(transactions)
+      .where(eq(transactions.userId, session.user.id))
+      .groupBy(transactions.locationId)
 
-        // Count CSV uploads for this location
-        const [csvResult] = await db
-          .select({ count: count() })
-          .from(csvUploads)
-          .where(eq(csvUploads.locationId, location.id))
-
-        // Get most recent POS connection
-        const [posConn] = await db
-          .select()
-          .from(posConnections)
-          .where(eq(posConnections.locationId, location.id))
-          .limit(1)
-
-        // Get first conversation for this location
-        const [conv] = await db
-          .select()
-          .from(conversations)
-          .where(eq(conversations.locationId, location.id))
-          .limit(1)
-
-        return {
-          id: location.id,
-          name: location.name,
-          type: location.type,
-          transactionCount: txResult?.count || 0,
-          csvUploadCount: csvResult?.count || 0,
-          posConnectionStatus: posConn?.syncState || null,
-          conversationId: conv?.id || null,
-        }
-      }),
+    const txCountMap = Object.fromEntries(
+      transactionCounts.map((tc) => [tc.locationId, tc.count || 0]),
     )
+
+    // Aggregate CSV upload counts by location in a single query
+    const csvCounts = await db
+      .select({
+        locationId: csvUploads.locationId,
+        count: count().as('count'),
+      })
+      .from(csvUploads)
+      .groupBy(csvUploads.locationId)
+
+    const csvCountMap = Object.fromEntries(
+      csvCounts.map((cc) => [cc.locationId, cc.count || 0]),
+    )
+
+    // Fetch all POS connections in a single query
+    const allPosConnections = await db.select().from(posConnections)
+    const posMap = Object.fromEntries(
+      allPosConnections.map((pos) => [pos.locationId, pos.syncState || null]),
+    )
+
+    // Fetch first conversation per location in a single query
+    const allConversations = await db.select().from(conversations)
+    const convMap = Object.fromEntries(
+      allConversations
+        .reduce(
+          (acc, conv) => {
+            if (!acc.has(conv.locationId)) {
+              acc.set(conv.locationId, conv.id)
+            }
+            return acc
+          },
+          new Map<string, string>(),
+        )
+        .entries(),
+    )
+
+    // Build locations data from aggregated queries
+    const locationsData = userLocations.map((location) => ({
+      id: location.id,
+      name: location.name,
+      type: location.type,
+      transactionCount: txCountMap[location.id] || 0,
+      csvUploadCount: csvCountMap[location.id] || 0,
+      posConnectionStatus: posMap[location.id] || null,
+      conversationId: convMap[location.id] || null,
+    }))
 
     // Get recent CSV uploads (last 5) across all locations
     const recentUploads = await db

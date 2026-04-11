@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { authClient } from '@/lib/auth-client'
+import { useSession } from '@/lib/auth-client'
 import {
   Menu,
   Settings,
@@ -20,6 +21,7 @@ import { cn } from '@/lib/utils'
 export function AppHeader() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
+  const { data: session } = useSession()
 
   const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -97,8 +99,10 @@ export function AppHeader() {
       </div>
       <div className="flex items-center gap-4">
         <div className="text-right">
-          <p className="text-sm font-medium">Chef Manager</p>
-          <p className="text-muted-foreground text-xs">chef@example.com</p>
+          <p className="text-sm font-medium">{session?.user?.name || 'User'}</p>
+          <p className="text-muted-foreground text-xs">
+            {session?.user?.email || 'No email'}
+          </p>
         </div>
         <Button variant="ghost" size="icon">
           <Settings className="h-4 w-4" />

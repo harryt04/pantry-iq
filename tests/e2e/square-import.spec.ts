@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test.describe('Square Integration', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to login and create session
-    await page.goto('/auth/login')
+    await page.goto('/login')
     // TODO: Setup test user login if needed
   })
 

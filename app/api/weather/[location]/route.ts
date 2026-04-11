@@ -3,6 +3,7 @@ import { getHistoricalWeather, getForecast } from '@/lib/weather/client'
 import { db } from '@/db'
 import { locations } from '@/db/schema/locations'
 import { eq } from 'drizzle-orm'
+import { ApiError, logErrorSafely } from '@/lib/api-error'
 
 /**
  * GET /api/weather/[location]
@@ -21,10 +22,7 @@ export async function GET(
     const { location: locationId } = await params
 
     if (!locationId) {
-      return NextResponse.json(
-        { error: 'Location ID is required' },
-        { status: 400 },
-      )
+      return ApiError.badRequest('Location ID is required', 'MISSING_LOCATION_ID')
     }
 
     // Get location from database to extract coordinates
@@ -35,7 +33,7 @@ export async function GET(
       .limit(1)
 
     if (locationRecord.length === 0) {
-      return NextResponse.json({ error: 'Location not found' }, { status: 404 })
+      return ApiError.notFound('Location not found', 'LOCATION_NOT_FOUND')
     }
 
     const { searchParams } = new URL(req.url)
@@ -65,18 +63,18 @@ export async function GET(
     } else {
       // Get historical weather for specific date
       if (!dateParam) {
-        return NextResponse.json(
-          { error: 'Date parameter is required for historical weather' },
-          { status: 400 },
+        return ApiError.badRequest(
+          'Date parameter is required for historical weather',
+          'MISSING_DATE_PARAM',
         )
       }
 
       try {
         const date = new Date(dateParam)
         if (isNaN(date.getTime())) {
-          return NextResponse.json(
-            { error: 'Invalid date format. Use YYYY-MM-DD' },
-            { status: 400 },
+          return ApiError.badRequest(
+            'Invalid date format. Use YYYY-MM-DD',
+            'INVALID_DATE_FORMAT',
           )
         }
 
@@ -95,21 +93,12 @@ export async function GET(
           { status: 200 },
         )
       } catch (error) {
-        console.error('Error parsing date:', error)
-        return NextResponse.json(
-          { error: 'Invalid date format. Use YYYY-MM-DD' },
-          { status: 400 },
-        )
+        const message = logErrorSafely(error, 'GET /api/weather/[location]')
+        return ApiError.badRequest(message, 'INVALID_DATE_FORMAT')
       }
     }
   } catch (error) {
-    console.error('Error in weather API:', error)
-    return NextResponse.json(
-      {
-        error: 'Failed to fetch weather data',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
-    )
+    const message = logErrorSafely(error, 'GET /api/weather/[location]')
+    return ApiError.internalServerError(message, 'WEATHER_ERROR')
   }
 }

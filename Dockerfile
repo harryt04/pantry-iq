@@ -25,6 +25,7 @@ RUN apk add --no-cache dumb-init
 
 # Copy built application from builder
 COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
 COPY --from=builder /app/package*.json ./
 
 # Install production dependencies only
@@ -39,5 +40,5 @@ ENV NODE_ENV=production
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Start application
-CMD ["node", ".next/standalone/server.js"]
+# Start application using npm start which runs 'next start'
+CMD ["npm", "start"]

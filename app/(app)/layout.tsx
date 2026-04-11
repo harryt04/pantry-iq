@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import { AppSidebar } from '@/components/layout/app-sidebar'
 import { AppHeader } from '@/components/layout/app-header'
 import { useSession } from '@/lib/auth-client'
@@ -10,17 +11,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = useSession()
   const router = useRouter()
 
-  if (isPending) {
+  useEffect(() => {
+    if (!isPending && !session) {
+      router.push('/login')
+    }
+  }, [session, isPending, router])
+
+  if (isPending || !session) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-muted-foreground">Loading...</div>
       </div>
     )
-  }
-
-  if (!session) {
-    router.push('/login')
-    return null
   }
 
   return (
