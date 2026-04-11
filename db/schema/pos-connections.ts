@@ -5,13 +5,13 @@ export const posConnections = pgTable(
   'pos_connections',
   {
     id: uuid().primaryKey().defaultRandom(),
-    locationId: uuid('location_id').notNull(),
+    locationId: uuid('locationId').notNull(),
     provider: text().notNull().default('square'),
-    oauthToken: text('oauth_token').notNull(),
-    refreshToken: text('refresh_token'),
-    syncState: text('sync_state').notNull().default('pending'),
-    lastSync: timestamp('last_sync'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    oauthToken: text('oauthToken').notNull(),
+    refreshToken: text('refreshToken'),
+    syncState: text('syncState').notNull().default('pending'),
+    lastSync: timestamp('lastSync'),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
   },
   (table) => [
     foreignKey({

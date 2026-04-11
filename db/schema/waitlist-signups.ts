@@ -5,7 +5,7 @@ export const waitlistSignups = pgTable(
   {
     id: uuid().primaryKey().defaultRandom(),
     email: text().notNull(),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
   },
   (table) => [unique('waitlist_signups_email_unique').on(table.email)],
 )

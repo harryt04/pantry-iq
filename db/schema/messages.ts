@@ -12,13 +12,13 @@ export const messages = pgTable(
   'messages',
   {
     id: uuid().primaryKey().defaultRandom(),
-    conversationId: uuid('conversation_id').notNull(),
+    conversationId: uuid('conversationId').notNull(),
     role: text().notNull(),
     content: text().notNull(),
-    modelUsed: text('model_used'),
-    tokensIn: integer('tokens_in'),
-    tokensOut: integer('tokens_out'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    modelUsed: text('modelUsed'),
+    tokensIn: integer('tokensIn'),
+    tokensOut: integer('tokensOut'),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
   },
   (table) => [
     foreignKey({

@@ -3,7 +3,6 @@ import {
   uuid,
   text,
   numeric,
-  date,
   timestamp,
   uniqueIndex,
   foreignKey,
@@ -14,12 +13,12 @@ export const weather = pgTable(
   'weather',
   {
     id: uuid().primaryKey().defaultRandom(),
-    locationId: uuid('location_id').notNull(),
-    date: date().notNull(),
+    locationId: uuid('locationId').notNull(),
+    date: text().notNull(),
     temperature: numeric(),
     conditions: text(),
     precipitation: numeric(),
-    cachedAt: timestamp('cached_at').notNull().defaultNow(),
+    cachedAt: timestamp('cachedAt').notNull().defaultNow(),
   },
   (table) => [
     foreignKey({

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import posthog from 'posthog-js'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -74,14 +75,14 @@ export function LandingPage() {
             <ChefHat className="text-primary h-8 w-8" />
             <span className="text-2xl font-bold">PantryIQ</span>
           </div>
-          <Button variant="outline" asChild>
-            <a
-              href="#notify"
-              onClick={() => posthog.capture('early-access-link-clicked')}
-            >
-              Get Early Access
-            </a>
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" asChild>
+              <Link href="/login">Login</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/signup">Sign Up</Link>
+            </Button>
+          </div>
         </div>
       </nav>
 

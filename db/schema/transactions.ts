@@ -3,7 +3,6 @@ import {
   uuid,
   text,
   numeric,
-  date,
   timestamp,
   index,
   foreignKey,
@@ -14,15 +13,15 @@ export const transactions = pgTable(
   'transactions',
   {
     id: uuid().primaryKey().defaultRandom(),
-    locationId: uuid('location_id').notNull(),
-    date: date().notNull(),
+    locationId: uuid('locationId').notNull(),
+    date: text().notNull(),
     item: text().notNull(),
     qty: numeric().notNull(),
     revenue: numeric(),
     cost: numeric(),
     source: text().notNull(),
-    sourceId: text('source_id'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    sourceId: text('sourceId'),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
   },
   (table) => [
     foreignKey({

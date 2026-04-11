@@ -41,37 +41,71 @@ export const schema = createSchema({
         createdAt: number(),
       })
       .primaryKey('id'),
-    table('csvUploads')
+    table('csv_uploads')
       .columns({
         id: string(),
         locationId: string(),
         filename: string(),
         rowCount: number(),
         status: string(),
-        errorMessage: string(),
-        createdAt: number(),
-        completedAt: number(),
+        errorDetails: string(),
+        fieldMapping: string(),
+        uploadedAt: number(),
       })
       .primaryKey('id'),
     table('transactions')
       .columns({
         id: string(),
         locationId: string(),
-        squareTransactionId: string(),
-        amount: number(),
-        currency: string(),
-        status: string(),
+        date: string(),
+        item: string(),
+        qty: number(),
+        revenue: number(),
+        cost: number(),
+        source: string(),
+        sourceId: string(),
         createdAt: number(),
       })
       .primaryKey('id'),
-    table('posConnections')
+    table('pos_connections')
       .columns({
         id: string(),
         locationId: string(),
         provider: string(),
-        externalId: string(),
-        status: string(),
-        lastSyncedAt: number(),
+        oauthToken: string(),
+        refreshToken: string(),
+        syncState: string(),
+        lastSync: number(),
+        createdAt: number(),
+      })
+      .primaryKey('id'),
+    table('places_cache')
+      .columns({
+        id: string(),
+        locationId: string(),
+        orgName: string(),
+        address: string(),
+        phone: string(),
+        hours: string(),
+        types: string(),
+        cachedAt: number(),
+      })
+      .primaryKey('id'),
+    table('weather')
+      .columns({
+        id: string(),
+        locationId: string(),
+        date: string(),
+        temperature: number(),
+        conditions: string(),
+        precipitation: number(),
+        cachedAt: number(),
+      })
+      .primaryKey('id'),
+    table('waitlist_signups')
+      .columns({
+        id: string(),
+        email: string(),
         createdAt: number(),
       })
       .primaryKey('id'),
@@ -120,18 +154,21 @@ export interface CsvUpload {
   filename: string
   rowCount: number
   status: string
-  errorMessage: string
-  createdAt: number
-  completedAt: number
+  errorDetails: string
+  fieldMapping: string
+  uploadedAt: number
 }
 
 export interface Transaction {
   id: string
   locationId: string
-  squareTransactionId: string
-  amount: number
-  currency: string
-  status: string
+  date: string
+  item: string
+  qty: number
+  revenue: number
+  cost: number
+  source: string
+  sourceId: string
   createdAt: number
 }
 
@@ -139,8 +176,36 @@ export interface PosConnection {
   id: string
   locationId: string
   provider: string
-  externalId: string
-  status: string
-  lastSyncedAt: number
+  oauthToken: string
+  refreshToken: string
+  syncState: string
+  lastSync: number
+  createdAt: number
+}
+
+export interface PlacesCache {
+  id: string
+  locationId: string
+  orgName: string
+  address: string
+  phone: string
+  hours: string
+  types: string
+  cachedAt: number
+}
+
+export interface Weather {
+  id: string
+  locationId: string
+  date: string
+  temperature: number
+  conditions: string
+  precipitation: number
+  cachedAt: number
+}
+
+export interface WaitlistSignup {
+  id: string
+  email: string
   createdAt: number
 }

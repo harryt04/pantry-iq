@@ -5,11 +5,11 @@ export const conversations = pgTable(
   'conversations',
   {
     id: uuid().primaryKey().defaultRandom(),
-    locationId: uuid('location_id').notNull(),
-    defaultModel: text('default_model')
+    locationId: uuid('locationId').notNull(),
+    defaultModel: text('defaultModel')
       .notNull()
       .default('gemini-2.0-flash-lite'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
   },
   (table) => [
     foreignKey({
