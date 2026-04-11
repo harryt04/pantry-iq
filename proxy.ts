@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Skip middleware for API routes, static files, and other special routes
+  // Skip proxy for API routes, static files, and other special routes
   if (
     pathname.startsWith('/api') ||
     pathname.startsWith('/_next') ||
