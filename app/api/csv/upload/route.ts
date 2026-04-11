@@ -1,33 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { mkdir, writeFile } from 'fs/promises'
-import { join } from 'path'
 import { parseCSV } from '@/lib/csv/parser'
+import { writeCSVFile, ensureUploadDir } from '@/lib/csv/storage'
 import { db } from '@/db'
 import { csvUploads } from '@/db/schema/csv-uploads'
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
-
-/**
- * Get the CSV upload directory
- */
-async function getUploadDir(): Promise<string> {
-  const uploadDir = process.env.CSV_UPLOAD_PATH || '/tmp/csv-uploads'
-  try {
-    await mkdir(uploadDir, { recursive: true })
-  } catch (error) {
-    console.warn('Failed to create upload directory:', error)
-  }
-  return uploadDir
-}
-
-/**
- * Write CSV file to disk
- */
-async function writeCSVFile(uploadId: string, buffer: Buffer): Promise<void> {
-  const uploadDir = process.env.CSV_UPLOAD_PATH || '/tmp/csv-uploads'
-  const filePath = join(uploadDir, uploadId)
-  await writeFile(filePath, buffer)
-}
 
 /**
  * POST /api/csv/upload
@@ -101,7 +78,7 @@ export async function POST(request: NextRequest) {
       .returning()
 
     // Store file for later processing
-    await getUploadDir()
+    await ensureUploadDir()
     try {
       await writeCSVFile(uploadRecord.id, buffer)
     } catch (error) {
