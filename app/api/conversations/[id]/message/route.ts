@@ -3,11 +3,11 @@ import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { conversations, locations, messages } from '@/db/schema'
 import { eq } from 'drizzle-orm'
-import { streamText, type CoreMessage } from 'ai'
+import { streamText, type ModelMessage } from 'ai'
 import { openai } from '@ai-sdk/openai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { google } from '@ai-sdk/google'
-import type { LanguageModelV1 } from '@ai-sdk/provider'
+import type { LanguageModelV3 } from '@ai-sdk/provider'
 import { getModel } from '@/lib/ai/models'
 import { buildPromptWithContext } from '@/lib/ai/prompts'
 import { buildContextData } from '@/lib/ai/context-builder'
@@ -83,7 +83,7 @@ export async function POST(
     const modelConfig = getModel(conversation[0].defaultModel)
 
     // Get the appropriate model instance
-    let model: LanguageModelV1
+    let model: LanguageModelV3
     switch (modelConfig.provider) {
       case 'openai':
         if (!process.env.OPENAI_API_KEY) {
@@ -120,7 +120,7 @@ export async function POST(
     const messageHistory = conversationHistory.map((m) => ({
       role: m.role as 'user' | 'assistant',
       content: m.content,
-    })) as CoreMessage[]
+    })) as ModelMessage[]
 
     // Create the stream
     const result = streamText({
@@ -128,7 +128,6 @@ export async function POST(
       system: systemPrompt,
       messages: [...messageHistory, { role: 'user', content: message }],
       temperature: 0.7,
-      maxTokens: 1500,
     })
 
     // Collect full content for persistence
