@@ -110,13 +110,10 @@ describe('Test Data Generation Script', () => {
     })
 
     it('should display help with --help', () => {
-      const output = execSync(
-        'npx tsx scripts/generate-test-csv.ts --help',
-        {
-          cwd: process.cwd(),
-          encoding: 'utf-8',
-        },
-      )
+      const output = execSync('npx tsx scripts/generate-test-csv.ts --help', {
+        cwd: process.cwd(),
+        encoding: 'utf-8',
+      })
 
       expect(output).toContain('Test Data Generation Script')
       expect(output).toContain('Usage:')
