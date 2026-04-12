@@ -33,5 +33,9 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "scripts/**/*.ts"]
+  "exclude": ["node_modules", "scripts/**/*.ts"],
+  "ts-node": {
+    "esm": true,
+    "experimentalEsm": true
+  }
 }
