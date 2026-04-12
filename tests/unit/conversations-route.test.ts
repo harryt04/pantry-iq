@@ -598,12 +598,17 @@ describe('Conversations Routes', () => {
 
       mockDatabaseForCreateRoute([location], [newConversation])
 
-      // Mock getModel to validate the model
+      // Mock getModel to validate the model - throw for invalid models
       const { getModel } = await import('@/lib/ai/models')
-      vi.mocked(getModel).mockReturnValue({
-        provider: 'openai',
-        id: 'gpt-4o',
-      } as unknown as ReturnType<typeof getModel>)
+      vi.mocked(getModel).mockImplementation((id: string) => {
+        if (id === 'invalid-model') {
+          throw new Error(`Model not found: ${id}`)
+        }
+        return {
+          provider: 'openai',
+          id: 'gpt-4o',
+        } as unknown as ReturnType<typeof getModel>
+      })
 
       const routeModule = await import('@/app/api/conversations/route')
       const request = createRequest(

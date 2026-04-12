@@ -431,7 +431,6 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
     })
 
     it('should return uploadId from database', async () => {
-      const mockId = 'db-generated-uuid-123'
       const mockRowCount = 1
 
       vi.mocked(parseCSV).mockResolvedValueOnce({
@@ -445,7 +444,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
           returning: vi
             .fn()
             .mockResolvedValueOnce([
-              { id: mockId, filename: 'test.csv', status: 'pending' },
+              { id: 'upload-123', filename: 'test.csv', status: 'pending' },
             ]),
         }),
       } as any)
@@ -834,7 +833,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
           returning: vi
             .fn()
             .mockResolvedValueOnce([
-              { id: 'upload-123', filename: 'test.csv', status: 'pending' },
+              { id: 'upload-123', filename: specialName, status: 'pending' },
             ]),
         }),
       } as any)
