@@ -23,11 +23,18 @@ import {
   validateMapping,
   applyMapping,
 } from '@/lib/csv/field-mapper'
-import { GENERATORS, serializeCSV } from '@/scripts/generate-test-csv-faker'
+import {
+  GENERATORS,
+  serializeCSV,
+  type Scenario,
+  type GeneratorOptions as ScriptGeneratorOptions,
+} from '@/scripts/generate-test-csv-faker'
 
 // ============================================================================
 // Mock Database Layer
 // ============================================================================
+
+interface GeneratorOptions extends ScriptGeneratorOptions {}
 
 /**
  * Mock database state for testing

@@ -360,7 +360,7 @@ describe('Places Client - getDonationOpportunities', () => {
       // Verify each search query was included
       const typedFetch = global.fetch as MockedFunction<typeof fetch>
       const calls = typedFetch.mock.calls
-      const queryParams = calls.map((call: Array<string>) =>
+      const queryParams = calls.map((call: any) =>
         new URL(call[0]).searchParams.get('query'),
       )
 

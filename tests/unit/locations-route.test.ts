@@ -128,7 +128,7 @@ function mockSession(userId: string = 'user-123') {
       ipAddress: '127.0.0.1',
       userAgent: 'test-agent',
     },
-  } as Record<string, unknown>)
+  } as any)
 }
 
 /**
@@ -161,7 +161,7 @@ function createMockLocation(overrides?: Partial<MockLocation>): MockLocation {
  * Allows multiple sequential calls to db.select/insert/update/delete
  */
 function createMockDatabaseChain(
-  result: Record<string, unknown>[] | null = null,
+  result: any[] | null = null,
 ): MockDatabaseChain {
   return {
     from: vi.fn().mockReturnThis(),
@@ -174,14 +174,14 @@ function createMockDatabaseChain(
 }
 
 function mockDatabaseQueryChain(
-  result: Record<string, unknown>[] | null = null,
+  result: any[] | null = null,
 ): MockDatabaseChain {
   const chain = createMockDatabaseChain(result)
 
-  vi.mocked(db.select).mockReturnValue(chain as MockDatabaseChain)
-  vi.mocked(db.insert).mockReturnValue(chain as MockDatabaseChain)
-  vi.mocked(db.update).mockReturnValue(chain as MockDatabaseChain)
-  vi.mocked(db.delete).mockReturnValue(chain as MockDatabaseChain)
+  vi.mocked(db.select).mockReturnValue(chain as any)
+  vi.mocked(db.insert).mockReturnValue(chain as any)
+  vi.mocked(db.update).mockReturnValue(chain as any)
+  vi.mocked(db.delete).mockReturnValue(chain as any)
 
   return chain
 }
@@ -191,8 +191,8 @@ function mockDatabaseQueryChain(
  * (e.g., first for ownership check, then for actual fetch)
  */
 function mockDatabaseForGetRoute(
-  ownershipCheckResult: Record<string, unknown>[],
-  getResult: Record<string, unknown>[],
+  ownershipCheckResult: any[],
+  getResult: any[],
 ) {
   vi.mocked(db.select).mockImplementation(() => {
     let selectCallCount = 0
@@ -203,7 +203,7 @@ function mockDatabaseForGetRoute(
         .mockResolvedValue(
           selectCallCount++ === 0 ? ownershipCheckResult : getResult,
         ),
-    } as MockDatabaseChain
+    } as any
   })
 }
 
@@ -211,20 +211,20 @@ function mockDatabaseForGetRoute(
  * Mock database for routes that do delete (needs ownership check + delete)
  */
 function mockDatabaseForDeleteRoute(
-  ownershipCheckResult: Record<string, unknown>[],
-  deleteResult: Record<string, unknown>[],
+  ownershipCheckResult: any[],
+  deleteResult: any[],
 ) {
   vi.mocked(db.select).mockImplementation(() => {
     return {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockResolvedValue(ownershipCheckResult),
-    } as MockDatabaseChain
+    } as any
   })
 
   vi.mocked(db.delete).mockReturnValue({
     where: vi.fn().mockReturnThis(),
     returning: vi.fn().mockResolvedValue(deleteResult),
-  } as MockDatabaseChain)
+  } as any)
 }
 
 // ============================================================================
@@ -258,7 +258,7 @@ describe('Locations Routes', () => {
       mockSession('user-123')
       const chain = createMockDatabaseChain([])
 
-      vi.mocked(db.select).mockReturnValue(chain as MockDatabaseChain)
+      vi.mocked(db.select).mockReturnValue(chain as any)
 
       const routeModule = await import('@/app/api/locations/route')
       const request = createRequest()
@@ -280,8 +280,8 @@ describe('Locations Routes', () => {
         createMockLocation({ id: 'loc-2', userId, name: 'Food Truck' }),
       ]
 
-      const chain = createMockDatabaseChain(userLocations)
-      vi.mocked(db.select).mockReturnValue(chain as MockDatabaseChain)
+      const chain = createMockDatabaseChain(userLocations as any)
+      vi.mocked(db.select).mockReturnValue(chain as any)
 
       const routeModule = await import('@/app/api/locations/route')
       const request = createRequest()
@@ -304,7 +304,7 @@ describe('Locations Routes', () => {
         then: () => {
           throw new Error('Database connection failed')
         },
-      } as MockDatabaseChain)
+      } as any)
 
       const routeModule = await import('@/app/api/locations/route')
       const request = createRequest()
@@ -577,7 +577,9 @@ describe('Locations Routes', () => {
     it('should return 500 on database error', async () => {
       mockSession()
       const chain = mockDatabaseQueryChain()
-      chain.returning.mockRejectedValueOnce(new Error('Database insert failed'))
+      chain.returning!.mockRejectedValueOnce(
+        new Error('Database insert failed'),
+      )
 
       const routeModule = await import('@/app/api/locations/route')
       const request = createRequest(
@@ -608,7 +610,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(401)
@@ -627,7 +629,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(403)
@@ -645,7 +647,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'loc-999' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       // When location doesn't exist, ownership check fails → 403
@@ -664,7 +666,7 @@ describe('Locations Routes', () => {
         return {
           from: vi.fn().mockReturnThis(),
           where: vi.fn().mockResolvedValue(callCount === 1 ? [location] : []),
-        } as MockDatabaseChain
+        } as any
       })
 
       const routeModule = await import('@/app/api/locations/[id]/route')
@@ -674,7 +676,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       // Rare case: location existed during ownership check but was deleted before fetch
@@ -695,7 +697,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(200)
@@ -706,12 +708,12 @@ describe('Locations Routes', () => {
     it('should return 500 on database error', async () => {
       mockSession()
       const chain = mockDatabaseQueryChain()
-      chain.where.mockReturnValue({
+      chain.where!.mockReturnValue({
         ...chain,
         then: () => {
           throw new Error('Database query failed')
         },
-      } as RouteContext)
+      } as any)
 
       const routeModule = await import('@/app/api/locations/[id]/route')
       const request = createRequest(
@@ -720,7 +722,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(500)
@@ -744,7 +746,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.PUT(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(401)
@@ -758,7 +760,7 @@ describe('Locations Routes', () => {
         createMockLocation({ userId: 'user-456' }),
       ])
 
-      vi.mocked(db.select).mockReturnValue(chain as MockDatabaseChain)
+      vi.mocked(db.select).mockReturnValue(chain as any)
 
       const routeModule = await import('@/app/api/locations/[id]/route')
       const request = createRequest(
@@ -767,7 +769,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(403)
@@ -779,7 +781,7 @@ describe('Locations Routes', () => {
       const chain = createMockDatabaseChain([
         createMockLocation({ userId: 'user-123' }),
       ])
-      vi.mocked(db.select).mockReturnValue(chain as MockDatabaseChain)
+      vi.mocked(db.select).mockReturnValue(chain as any)
 
       const routeModule = await import('@/app/api/locations/[id]/route')
       const request = new NextRequest(
@@ -792,7 +794,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.PUT(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(400)
@@ -804,7 +806,7 @@ describe('Locations Routes', () => {
       const chain = createMockDatabaseChain([
         createMockLocation({ userId: 'user-123' }),
       ])
-      vi.mocked(db.select).mockReturnValue(chain as MockDatabaseChain)
+      vi.mocked(db.select).mockReturnValue(chain as any)
 
       const routeModule = await import('@/app/api/locations/[id]/route')
       const request = createRequest(
@@ -815,7 +817,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.PUT(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(400)
@@ -827,7 +829,7 @@ describe('Locations Routes', () => {
       const chain = createMockDatabaseChain([
         createMockLocation({ userId: 'user-123' }),
       ])
-      vi.mocked(db.select).mockReturnValue(chain as MockDatabaseChain)
+      vi.mocked(db.select).mockReturnValue(chain as any)
 
       const routeModule = await import('@/app/api/locations/[id]/route')
       const request = createRequest(
@@ -838,7 +840,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.PUT(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(400)
@@ -850,7 +852,7 @@ describe('Locations Routes', () => {
       const chain = createMockDatabaseChain([
         createMockLocation({ userId: 'user-123' }),
       ])
-      vi.mocked(db.select).mockReturnValue(chain as MockDatabaseChain)
+      vi.mocked(db.select).mockReturnValue(chain as any)
 
       const routeModule = await import('@/app/api/locations/[id]/route')
       const request = createRequest(
@@ -861,7 +863,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.PUT(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(400)
@@ -881,14 +883,14 @@ describe('Locations Routes', () => {
           where: vi
             .fn()
             .mockResolvedValue([createMockLocation({ userId: 'user-123' })]),
-        } as MockDatabaseChain
+        } as any
       })
 
       vi.mocked(db.update).mockReturnValue({
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([updatedLocation]),
-      } as RouteContext)
+      } as any)
 
       const routeModule = await import('@/app/api/locations/[id]/route')
       const request = createRequest(
@@ -899,7 +901,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.PUT(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(200)
@@ -921,14 +923,14 @@ describe('Locations Routes', () => {
           where: vi
             .fn()
             .mockResolvedValue([createMockLocation({ userId: 'user-123' })]),
-        } as MockDatabaseChain
+        } as any
       })
 
       vi.mocked(db.update).mockReturnValue({
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([updatedLocation]),
-      } as RouteContext)
+      } as any)
 
       const routeModule = await import('@/app/api/locations/[id]/route')
       const request = createRequest(
@@ -943,7 +945,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.PUT(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(200)
@@ -959,7 +961,7 @@ describe('Locations Routes', () => {
           where: vi
             .fn()
             .mockResolvedValue([createMockLocation({ userId: 'user-123' })]),
-        } as MockDatabaseChain
+        } as any
       })
 
       vi.mocked(db.update).mockReturnValue({
@@ -968,7 +970,7 @@ describe('Locations Routes', () => {
         returning: vi
           .fn()
           .mockRejectedValueOnce(new Error('Database update failed')),
-      } as RouteContext)
+      } as any)
 
       const routeModule = await import('@/app/api/locations/[id]/route')
       const request = createRequest(
@@ -979,7 +981,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.PUT(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(500)
@@ -1002,7 +1004,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.DELETE(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(401)
@@ -1016,7 +1018,7 @@ describe('Locations Routes', () => {
         createMockLocation({ userId: 'user-456' }),
       ])
 
-      vi.mocked(db.select).mockReturnValue(chain as MockDatabaseChain)
+      vi.mocked(db.select).mockReturnValue(chain as any)
 
       const routeModule = await import('@/app/api/locations/[id]/route')
       const request = createRequest(
@@ -1026,7 +1028,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.DELETE(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(403)
@@ -1045,7 +1047,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.DELETE(request, {
         params: Promise.resolve({ id: 'loc-999' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       // When location doesn't exist, ownership check fails → 403
@@ -1061,12 +1063,12 @@ describe('Locations Routes', () => {
       vi.mocked(db.select).mockReturnValue({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockResolvedValue([location]),
-      } as RouteContext)
+      } as any)
 
       vi.mocked(db.delete).mockReturnValue({
         where: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([]),
-      } as RouteContext)
+      } as any)
 
       const routeModule = await import('@/app/api/locations/[id]/route')
       const request = createRequest(
@@ -1076,7 +1078,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.DELETE(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       // Rare case: location existed during ownership check but delete returned nothing
@@ -1097,20 +1099,20 @@ describe('Locations Routes', () => {
           return {
             from: vi.fn().mockReturnThis(),
             where: vi.fn().mockResolvedValue([location]),
-          } as MockDatabaseChain
+          } as any
         }
         // Second call for delete (which also returns the deleted record)
         return {
           from: vi.fn().mockReturnThis(),
           where: vi.fn().mockReturnThis(),
           returning: vi.fn().mockResolvedValue([location]),
-        } as MockDatabaseChain
+        } as any
       })
 
       vi.mocked(db.delete).mockReturnValue({
         where: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([location]),
-      } as RouteContext)
+      } as any)
 
       const routeModule = await import('@/app/api/locations/[id]/route')
       const request = createRequest(
@@ -1120,7 +1122,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.DELETE(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(200)
@@ -1142,7 +1144,7 @@ describe('Locations Routes', () => {
       // Verify route executes without error
       const response = await routeModule.DELETE(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
 
       // Cascade constraints (pos_connections, csv_uploads, transactions, etc.)
       // are handled by database, not by route logic
@@ -1157,7 +1159,7 @@ describe('Locations Routes', () => {
           where: vi
             .fn()
             .mockResolvedValue([createMockLocation({ userId: 'user-123' })]),
-        } as MockDatabaseChain
+        } as any
       })
 
       vi.mocked(db.delete).mockReturnValue({
@@ -1165,7 +1167,7 @@ describe('Locations Routes', () => {
         returning: vi
           .fn()
           .mockRejectedValueOnce(new Error('Database delete failed')),
-      } as RouteContext)
+      } as any)
 
       const routeModule = await import('@/app/api/locations/[id]/route')
       const request = createRequest(
@@ -1175,7 +1177,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.DELETE(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(500)
@@ -1205,12 +1207,12 @@ describe('Locations Routes', () => {
     it('error responses should never include stack traces', async () => {
       mockSession()
       const chain = mockDatabaseQueryChain()
-      chain.where.mockReturnValue({
+      chain.where!.mockReturnValue({
         ...chain,
         then: () => {
           throw new Error('Database connection failed: host=invalid')
         },
-      } as RouteContext)
+      } as any)
 
       const routeModule = await import('@/app/api/locations/route')
       const request = createRequest()
@@ -1237,7 +1239,7 @@ describe('Locations Routes', () => {
       const chain = createMockDatabaseChain([
         createMockLocation({ userId: 'user-456', id: 'loc-123' }),
       ])
-      vi.mocked(db.select).mockReturnValue(chain as MockDatabaseChain)
+      vi.mocked(db.select).mockReturnValue(chain as any)
 
       const routeModule = await import('@/app/api/locations/[id]/route')
       const request = createRequest(
@@ -1246,7 +1248,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.GET(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(403)
@@ -1259,7 +1261,7 @@ describe('Locations Routes', () => {
       const chain = createMockDatabaseChain([
         createMockLocation({ userId: 'user-456', id: 'loc-123' }),
       ])
-      vi.mocked(db.select).mockReturnValue(chain as MockDatabaseChain)
+      vi.mocked(db.select).mockReturnValue(chain as any)
 
       const routeModule = await import('@/app/api/locations/[id]/route')
       const request = createRequest(
@@ -1270,7 +1272,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.PUT(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
       const body = await response.json()
 
       expect(response.status).toBe(403)
@@ -1283,7 +1285,7 @@ describe('Locations Routes', () => {
       const chain = createMockDatabaseChain([
         createMockLocation({ userId: 'user-456', id: 'loc-123' }),
       ])
-      vi.mocked(db.select).mockReturnValue(chain as MockDatabaseChain)
+      vi.mocked(db.select).mockReturnValue(chain as any)
 
       const routeModule = await import('@/app/api/locations/[id]/route')
       const request = createRequest(
@@ -1293,7 +1295,7 @@ describe('Locations Routes', () => {
 
       const response = await routeModule.DELETE(request, {
         params: Promise.resolve({ id: 'loc-123' }),
-      } as RouteContext)
+      } as any)
 
       expect(response.status).toBe(403)
     })

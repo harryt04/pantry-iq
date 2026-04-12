@@ -182,8 +182,8 @@ describe('Character encoding support', () => {
 
       // Encode to ISO-8859-1 if iconv is available
       let buffer: Buffer
-      if (iconv && typeof iconv.encode === 'function') {
-        buffer = iconv.encode(csvText, 'ISO-8859-1')
+      if (iconv && typeof (iconv as any).encode === 'function') {
+        buffer = (iconv as any).encode(csvText, 'ISO-8859-1')
       } else {
         // Fallback: use UTF-8 (iconv may not be installed)
         buffer = Buffer.from(csvText, 'utf-8')
@@ -199,8 +199,8 @@ describe('Character encoding support', () => {
       const csvText = 'Restaurant\nCafé Parisien\nRésumé Express'
 
       let buffer: Buffer
-      if (iconv && typeof iconv.encode === 'function') {
-        buffer = iconv.encode(csvText, 'ISO-8859-1')
+      if (iconv && typeof (iconv as any).encode === 'function') {
+        buffer = (iconv as any).encode(csvText, 'ISO-8859-1')
       } else {
         buffer = Buffer.from(csvText, 'utf-8')
       }

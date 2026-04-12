@@ -212,7 +212,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
               { id: 'upload-123', filename: 'test.csv', status: 'pending' },
             ]),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest(
         'test.csv',
@@ -239,7 +239,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
               { id: 'upload-123', filename: 'test.csv', status: 'pending' },
             ]),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest(
         'test.tsv',
@@ -264,10 +264,10 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
           returning: vi
             .fn()
             .mockResolvedValueOnce([
-              { id: 'upload-123', filename: 'test.tsv', status: 'pending' },
+              { id: 'upload-123', filename: 'test.csv', status: 'pending' },
             ]),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest(
         'test.CSV',
@@ -342,7 +342,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
               { id: 'upload-123', filename: 'test.csv', status: 'pending' },
             ]),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const largeFile = new File(['x'], 'test.csv', { type: 'text/csv' })
       Object.defineProperty(largeFile, 'size', { value: 50 * 1024 * 1024 })
@@ -376,7 +376,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
               { id: 'upload-123', filename: 'test.csv', status: 'pending' },
             ]),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest(
         'test.csv',
@@ -410,7 +410,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
             },
           ]),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest(
         'inventory.csv',
@@ -431,11 +431,12 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
 
     it('should return uploadId from database', async () => {
       const mockId = 'db-generated-uuid-123'
+      const mockRowCount = 1
 
       vi.mocked(parseCSV).mockResolvedValueOnce({
         headers: ['col'],
         rows: [{ col: 'val' }],
-        totalRows: 1,
+        totalRows: mockRowCount,
       })
 
       vi.mocked(db.insert).mockReturnValueOnce({
@@ -446,7 +447,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
               { id: mockId, filename: 'test.csv', status: 'pending' },
             ]),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest('test.csv', 'col\n', 'loc-123')
       const response = await POST(request)
@@ -472,7 +473,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
               { id: 'id', filename: 'test.csv', status: 'pending' },
             ]),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest(
         'test.csv',
@@ -504,7 +505,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
               { id: 'id', filename: 'test.csv', status: 'pending' },
             ]),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest('test.csv', 'col\n', 'loc-123')
       const response = await POST(request)
@@ -529,7 +530,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
               { id: 'id', filename: 'test.csv', status: 'pending' },
             ]),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest('test.csv', 'col\nval\n', 'loc-123')
       const response = await POST(request)
@@ -558,7 +559,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
               { id: 'id', filename: 'test.csv', status: 'pending' },
             ]),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest('test.csv', 'col\nval\n', 'loc-123')
       await POST(request)
@@ -585,7 +586,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
 
       vi.mocked(db.insert).mockReturnValueOnce({
         values: mockValues,
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest(
         'test.csv',
@@ -617,7 +618,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
 
       vi.mocked(db.insert).mockReturnValueOnce({
         values: mockValues,
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest(
         mockFilename,
@@ -649,7 +650,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
 
       vi.mocked(db.insert).mockReturnValueOnce({
         values: mockValues,
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest('test.csv', 'col\n', 'loc-123')
       await POST(request)
@@ -675,7 +676,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
 
       vi.mocked(db.insert).mockReturnValueOnce({
         values: mockValues,
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest('test.csv', 'col\nval\n', 'loc-123')
       await POST(request)
@@ -703,7 +704,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
 
       vi.mocked(db.insert).mockReturnValueOnce({
         values: mockValues,
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest(
         'test.csv',
@@ -740,7 +741,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
               { id: 'id', filename: 'test.csv', status: 'pending' },
             ]),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest('test.csv', 'col\nval\n', 'loc-123')
       await POST(request)
@@ -790,7 +791,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
         values: vi.fn().mockReturnValueOnce({
           returning: vi.fn().mockRejectedValueOnce(new Error('DB error')),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest('test.csv', 'col\nval\n', 'loc-123')
       const response = await POST(request)
@@ -835,7 +836,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
               { id: 'upload-123', filename: 'test.csv', status: 'pending' },
             ]),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest(
         specialName,
@@ -864,7 +865,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
               { id: 'id', filename: 'test.csv', status: 'pending' },
             ]),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest(
         'test.csv',
@@ -895,7 +896,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
               { id: 'id', filename: 'test.csv', status: 'pending' },
             ]),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest(
         'test.csv',
@@ -929,7 +930,7 @@ describe('CSV Upload Route - POST /api/csv/upload', () => {
               { id: 'id', filename: 'test.csv', status: 'pending' },
             ]),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const request = createFormDataRequest(
         'test.csv',

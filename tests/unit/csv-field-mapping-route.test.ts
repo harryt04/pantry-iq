@@ -87,7 +87,7 @@ describe('CSV Field Mapping Route Handler', () => {
         Qty: 'qty',
         Price: 'revenue',
         Cost: 'cost',
-      }
+      } as any
 
       vi.mocked(suggestMappings).mockResolvedValueOnce(expectedMapping)
 
@@ -137,7 +137,7 @@ describe('CSV Field Mapping Route Handler', () => {
         Date: 'date',
         Product: 'item',
         Qty: 'qty',
-      }
+      } as any
 
       vi.mocked(validateMapping).mockReturnValue(null)
 
@@ -151,7 +151,7 @@ describe('CSV Field Mapping Route Handler', () => {
         Date: 'date',
         Qty: 'qty',
         // missing 'item' field
-      }
+      } as any
 
       vi.mocked(validateMapping).mockReturnValue('Missing required field: item')
 
@@ -166,7 +166,7 @@ describe('CSV Field Mapping Route Handler', () => {
         UnknownField: null,
         Product: 'item',
         Qty: 'qty',
-      }
+      } as any
 
       vi.mocked(validateMapping).mockReturnValue(null)
 
@@ -181,7 +181,7 @@ describe('CSV Field Mapping Route Handler', () => {
         Qty: 'qty',
         Price: null, // optional revenue
         Cost: null, // optional cost
-      }
+      } as any
 
       vi.mocked(validateMapping).mockReturnValue(null)
 
@@ -203,7 +203,7 @@ describe('CSV Field Mapping Route Handler', () => {
         'Product Name': 'item',
         Quantity: 'qty',
         'Sale Date': 'date',
-      }
+      } as any
 
       vi.mocked(applyMapping).mockReturnValue({
         item: 'Widget',
@@ -233,7 +233,7 @@ describe('CSV Field Mapping Route Handler', () => {
         Product: 'item',
         Qty: 'qty',
         Date: 'date',
-      }
+      } as any
 
       vi.mocked(applyMapping).mockReturnValue({
         item: 'Item',
@@ -261,7 +261,7 @@ describe('CSV Field Mapping Route Handler', () => {
       const mapping = {
         Item: 'item',
         Qty: 'qty',
-      }
+      } as any
 
       vi.mocked(applyMapping).mockReturnValue({
         item: 'Widget',
@@ -288,7 +288,7 @@ describe('CSV Field Mapping Route Handler', () => {
       const mapping = {
         Item: 'item',
         Date: 'date',
-      }
+      } as any
 
       vi.mocked(applyMapping).mockReturnValue({
         item: 'Widget',
@@ -316,7 +316,7 @@ describe('CSV Field Mapping Route Handler', () => {
         Item: 'item',
         Qty: 'qty',
         Date: 'date',
-      }
+      } as any
 
       rows.forEach((row) => {
         vi.mocked(applyMapping).mockReturnValueOnce({
@@ -597,7 +597,7 @@ describe('CSV Field Mapping Route Handler', () => {
           Date: 'date',
           Product: 'item',
           Qty: 'qty',
-        },
+        } as any,
         message: 'Field mapping suggestions generated',
       }
 
@@ -618,7 +618,7 @@ describe('CSV Field Mapping Route Handler', () => {
           Date: 'date',
           Product: 'item',
           Qty: 'qty',
-        },
+        } as any,
       }
 
       expect(successResponse.success).toBe(true)
@@ -636,7 +636,7 @@ describe('CSV Field Mapping Route Handler', () => {
           Date: 'date',
           Product: 'item',
           Qty: 'qty',
-        },
+        } as any,
         alreadyMapped: true,
       }
 
@@ -657,7 +657,7 @@ describe('CSV Field Mapping Route Handler', () => {
     })
 
     it('should handle empty mapping object', () => {
-      const mapping = {}
+      const mapping = {} as any
       const hasRequiredMapping = Object.keys(mapping).some(
         (key) => mapping[key] === 'item',
       )
@@ -689,7 +689,7 @@ describe('CSV Field Mapping Route Handler', () => {
         Qty: '999999999999999999',
       }
 
-      const mapping = { Item: 'item', Qty: 'qty' }
+      const mapping = { Item: 'item', Qty: 'qty' } as any
 
       vi.mocked(applyMapping).mockReturnValue({
         item: 'Widget',
@@ -728,7 +728,7 @@ describe('CSV Field Mapping Route Handler', () => {
         Date: 'date',
         Product: 'item',
         Qty: 'qty',
-      }
+      } as any
 
       // Mapping should be stored and retrievable
       expect(confirmedMapping).toEqual({

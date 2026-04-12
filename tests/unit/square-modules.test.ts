@@ -239,12 +239,9 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
     // Mock SquareClient
     mockSquareClient = {
       getTransactions: vi.fn(),
-    } as unknown as SquareClient
+    } as any
 
-    syncManager = new SquareSyncManager(
-      mockSquareClient as unknown as SquareClient,
-      locationId,
-    )
+    syncManager = new SquareSyncManager(mockSquareClient as any, locationId)
 
     // Clear database mocks
     vi.clearAllMocks()
@@ -577,14 +574,14 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             ]),
           }),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const mockUpdate = vi.spyOn(db, 'update')
       mockUpdate.mockReturnValue({
         set: vi.fn().mockReturnValue({
           where: vi.fn().mockResolvedValue([]),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const result = await syncManager.syncTransactions(
         posConnectionId,
@@ -641,7 +638,7 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             limit: vi.fn().mockResolvedValue([]), // No existing
           }),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       let insertCallCount = 0
       vi.spyOn(db, 'insert').mockReturnValue({
@@ -652,7 +649,7 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
           }
           return Promise.resolve([])
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const result = await syncManager.syncTransactions(
         posConnectionId,
@@ -696,14 +693,14 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             ]),
           }),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const mockUpdate = vi.spyOn(db, 'update')
       mockUpdate.mockReturnValue({
         set: vi.fn().mockReturnValue({
           where: vi.fn().mockResolvedValue([]),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const result = syncManager.syncTransactions(
         posConnectionId,
@@ -738,7 +735,7 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             limit: vi.fn().mockResolvedValue([]), // No existing
           }),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const mockInsert = vi.spyOn(db, 'insert')
       let insertedValues!: Record<string, unknown>
@@ -783,7 +780,7 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             limit: vi.fn().mockResolvedValue([]), // No existing
           }),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const mockInsert = vi.spyOn(db, 'insert')
       let insertedValues!: Record<string, unknown>
@@ -831,12 +828,12 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             limit: vi.fn().mockResolvedValue([]), // No existing
           }),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const mockInsert = vi.spyOn(db, 'insert')
       mockInsert.mockReturnValue({
         values: vi.fn().mockResolvedValue([]),
-      } as Record<string, unknown>)
+      } as any)
 
       const result = await syncManager.syncTransactions(
         posConnectionId,
@@ -873,7 +870,7 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             limit: vi.fn().mockResolvedValue([]), // No existing
           }),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const mockInsert = vi.spyOn(db, 'insert')
       let insertedValues!: Record<string, unknown>
@@ -961,12 +958,12 @@ describe('SquareSyncManager (lib/square/sync.ts)', () => {
             }),
           }),
         }),
-      } as Record<string, unknown>)
+      } as any)
 
       const mockInsert = vi.spyOn(db, 'insert')
       mockInsert.mockReturnValue({
         values: vi.fn().mockResolvedValue([]),
-      } as Record<string, unknown>)
+      } as any)
 
       const result = await syncManager.syncTransactions(
         posConnectionId,

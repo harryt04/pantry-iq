@@ -1025,7 +1025,7 @@ describe('Conversations Routes', () => {
 
       vi.mocked(db.delete).mockReturnValue({
         where: vi.fn().mockReturnThis(),
-      } as RouteContext)
+      } as any)
 
       const routeModule = await import('@/app/api/conversations/[id]/route')
       const request = createRequest(
@@ -1452,13 +1452,13 @@ describe('Conversations Routes', () => {
       } as any)
 
       const { buildContextData } = await import('@/lib/ai/context-builder')
-      vi.mocked(buildContextData).mockResolvedValue({} as RouteContext)
+      vi.mocked(buildContextData).mockResolvedValue({} as any)
 
       const { buildPromptWithContext } = await import('@/lib/ai/prompts')
       vi.mocked(buildPromptWithContext).mockReturnValue('System prompt')
 
       const { persistUserMessage } = await import('@/lib/ai/stream-handler')
-      vi.mocked(persistUserMessage).mockResolvedValue(undefined)
+      vi.mocked(persistUserMessage).mockResolvedValue(undefined as any)
 
       // Mock a readable stream response
       const mockStream = {
@@ -1473,7 +1473,7 @@ describe('Conversations Routes', () => {
           input: 100,
           output: 150,
         }),
-      } as RouteContext)
+      } as any)
 
       const savedKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY
       process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test-key'
@@ -1530,18 +1530,18 @@ describe('Conversations Routes', () => {
 
       const { getModel } = await import('@/lib/ai/models')
       vi.mocked(getModel).mockReturnValue({
-        provider: 'openai',
-        id: 'gpt-4o',
+        provider: 'google',
+        id: 'gemini-2.0-flash-lite',
       } as any)
 
       const { buildContextData } = await import('@/lib/ai/context-builder')
-      vi.mocked(buildContextData).mockResolvedValue({} as RouteContext)
+      vi.mocked(buildContextData).mockResolvedValue({} as any)
 
       const { buildPromptWithContext } = await import('@/lib/ai/prompts')
       vi.mocked(buildPromptWithContext).mockReturnValue('System prompt')
 
       const { persistUserMessage } = await import('@/lib/ai/stream-handler')
-      vi.mocked(persistUserMessage).mockResolvedValue(undefined)
+      vi.mocked(persistUserMessage).mockResolvedValue(undefined as any)
 
       // Delete OPENAI_API_KEY to simulate unavailable provider
       const savedKey = process.env.OPENAI_API_KEY
@@ -1595,13 +1595,13 @@ describe('Conversations Routes', () => {
       } as any)
 
       const { buildContextData } = await import('@/lib/ai/context-builder')
-      vi.mocked(buildContextData).mockResolvedValue({} as RouteContext)
+      vi.mocked(buildContextData).mockResolvedValue({} as any)
 
       const { buildPromptWithContext } = await import('@/lib/ai/prompts')
       vi.mocked(buildPromptWithContext).mockReturnValue('System prompt')
 
       const { persistUserMessage } = await import('@/lib/ai/stream-handler')
-      vi.mocked(persistUserMessage).mockResolvedValue(undefined)
+      vi.mocked(persistUserMessage).mockResolvedValue(undefined as any)
 
       vi.mocked(streamText).mockReturnValue({
         textStream: {
@@ -1613,7 +1613,7 @@ describe('Conversations Routes', () => {
           input: 100,
           output: 150,
         }),
-      } as RouteContext)
+      } as any)
 
       const routeModule =
         await import('@/app/api/conversations/[id]/message/route')
