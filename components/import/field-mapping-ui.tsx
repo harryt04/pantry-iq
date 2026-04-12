@@ -294,7 +294,7 @@ export function FieldMappingUI({
                               key={header}
                               className="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-300"
                             >
-                              {mapping[header] || header}
+                              {header}
                             </th>
                           ))}
                       </tr>

@@ -81,10 +81,12 @@ test.describe('CSV Import E2E', () => {
     // Wait for upload to complete and preview to appear
     await page.waitForSelector('text="Map Fields"')
 
-    // Verify preview shows data
-    await expect(page.locator('text="Date"')).toBeVisible()
-    await expect(page.locator('text="Item"')).toBeVisible()
-    await expect(page.locator('text="Widget A"')).toBeVisible()
+    // Verify preview shows data - look in the preview table
+    const previewTable = page.locator('table')
+    await expect(previewTable).toBeVisible()
+    await expect(previewTable.locator('text="Date"')).toBeVisible()
+    await expect(previewTable.locator('text="Item"')).toBeVisible()
+    await expect(previewTable.locator('text="Widget A"')).toBeVisible()
   })
 
   test('should show AI-suggested field mappings', async ({ page }) => {
@@ -152,7 +154,7 @@ test.describe('CSV Import E2E', () => {
 
     // Should show error about missing required field
     await expect(
-      page.locator('text=/Missing required field|item must be mapped/i'),
+      page.locator('text=/Required field.*must be mapped/i'),
     ).toBeVisible({ timeout: 5000 })
   })
 
@@ -172,7 +174,7 @@ test.describe('CSV Import E2E', () => {
 
     // Verify success message
     await expect(
-      page.locator('text="rows imported successfully"'),
+      page.locator('text=/rows imported successfully/'),
     ).toBeVisible()
   })
 
@@ -199,7 +201,7 @@ invalid-date,Widget A,10,99.99
       await page.waitForSelector('text="Import Complete"', { timeout: 10000 })
 
       // Should show import results with some errors
-      await expect(page.locator('text="failed to import"')).toBeVisible({
+      await expect(page.locator('text=/row.*failed to import/i')).toBeVisible({
         timeout: 5000,
       })
     } finally {

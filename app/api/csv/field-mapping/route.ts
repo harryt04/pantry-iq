@@ -135,7 +135,18 @@ export async function POST(
       interface FieldHeaders {
         headers?: string[]
       }
-      const mappingData = (upload.fieldMapping as FieldHeaders) || {}
+      let mappingData: FieldHeaders = {}
+      if (upload.fieldMapping) {
+        try {
+          mappingData = JSON.parse(
+            typeof upload.fieldMapping === 'string'
+              ? upload.fieldMapping
+              : JSON.stringify(upload.fieldMapping),
+          )
+        } catch {
+          console.error('Failed to parse fieldMapping from upload record')
+        }
+      }
       const suggestedMapping = await suggestMappings(
         mappingData.headers || [],
         sampleData,

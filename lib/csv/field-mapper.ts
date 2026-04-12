@@ -132,6 +132,27 @@ function findFallbackMapping(header: string): StandardField | null {
 }
 
 /**
+ * Check if an API key is valid (not stubbed or empty)
+ *
+ * @param apiKey - The API key to check
+ * @returns true if the key looks valid, false if stubbed or empty
+ */
+function isValidApiKey(apiKey?: string): boolean {
+  if (!apiKey) return false
+  // Check if key is stubbed (common test value) or obviously invalid
+  const lowered = apiKey.toLowerCase().trim()
+  // Reject common stub patterns
+  if (lowered.includes('stub') || lowered === 'test' || lowered === '') {
+    return false
+  }
+  // Require some minimum length (most real keys are longer than 20 chars)
+  if (apiKey.length < 20) {
+    return false
+  }
+  return true
+}
+
+/**
  * Suggest field mappings using LLM
  *
  * @param headers - CSV column headers
@@ -142,14 +163,16 @@ export async function suggestMappings(
   headers: string[],
   sample: Record<string, string>[],
 ): Promise<FieldMapping> {
-  // Check which providers are available
-  const hasOpenAI = !!process.env.OPENAI_API_KEY
-  const hasAnthropic = !!process.env.ANTHROPIC_API_KEY
-  const hasGoogle = !!process.env.GOOGLE_GENERATIVE_AI_API_KEY
+  // Check which providers are available with VALID keys
+  const hasOpenAI = isValidApiKey(process.env.OPENAI_API_KEY)
+  const hasAnthropic = isValidApiKey(process.env.ANTHROPIC_API_KEY)
+  const hasGoogle = isValidApiKey(process.env.GOOGLE_GENERATIVE_AI_API_KEY)
 
   // Fallback to pattern matching if no LLM available
   if (!hasOpenAI && !hasAnthropic && !hasGoogle) {
-    console.warn('No LLM providers available, using pattern matching fallback')
+    console.warn(
+      'No valid LLM providers available, using pattern matching fallback',
+    )
     return fallbackMappings(headers)
   }
 
