@@ -179,23 +179,23 @@ test.describe('Authentication E2E Tests', () => {
   test('GET /api/auth/get-session returns null when not authenticated', async ({
     page,
   }) => {
+    // Ensure page is loaded from beforeEach
+    await page.waitForLoadState('domcontentloaded')
+
     // Clear cookies to ensure we're not authenticated
     await page.context().clearCookies()
 
-    // Make request without session
+    // Make request without session - Better Auth returns null for unauthenticated users
     const response = await page.evaluate(async () => {
-      try {
-        const res = await fetch('/api/auth/get-session')
-        return await res.json()
-      } catch (err) {
-        return null
+      const res = await fetch('/api/auth/get-session')
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`)
       }
+      return res.json()
     })
 
-    expect(response).toBeDefined()
-    if (response) {
-      expect(response.user).toBeNull()
-    }
+    // Better Auth /get-session endpoint returns null (JSON null) for unauthenticated users
+    expect(response).toBeNull()
   })
 
   test('should sign out and redirect to login', async ({ page }) => {
