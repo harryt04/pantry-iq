@@ -60,10 +60,6 @@ jobs:
       - name: Unit tests
         run: npm run test:unit
 
-      # ── Database & E2E tests ─────────────────
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
       - name: Setup CI database schema
         run: npx tsx scripts/ci-setup-db.ts
 
