@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { NextRequest } from 'next/server'
 import { POST } from '@/app/api/csv/upload/route'

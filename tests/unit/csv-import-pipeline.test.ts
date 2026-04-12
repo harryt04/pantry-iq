@@ -182,7 +182,9 @@ describe('Character encoding support', () => {
 
       // Encode to ISO-8859-1 if iconv is available
       let buffer: Buffer
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (iconv && typeof (iconv as any).encode === 'function') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         buffer = (iconv as any).encode(csvText, 'ISO-8859-1')
       } else {
         // Fallback: use UTF-8 (iconv may not be installed)
@@ -199,7 +201,9 @@ describe('Character encoding support', () => {
       const csvText = 'Restaurant\nCafé Parisien\nRésumé Express'
 
       let buffer: Buffer
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (iconv && typeof (iconv as any).encode === 'function') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         buffer = (iconv as any).encode(csvText, 'ISO-8859-1')
       } else {
         buffer = Buffer.from(csvText, 'utf-8')

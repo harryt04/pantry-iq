@@ -26,15 +26,12 @@ import {
 import {
   GENERATORS,
   serializeCSV,
-  type Scenario,
-  type GeneratorOptions as ScriptGeneratorOptions,
+  type GeneratorOptions,
 } from '@/scripts/generate-test-csv-faker'
 
 // ============================================================================
 // Mock Database Layer
 // ============================================================================
-
-interface GeneratorOptions extends ScriptGeneratorOptions {}
 
 /**
  * Mock database state for testing

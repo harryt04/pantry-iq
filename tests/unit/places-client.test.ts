@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { getDonationOpportunities } from '@/lib/places/client'
 import { db } from '@/db'

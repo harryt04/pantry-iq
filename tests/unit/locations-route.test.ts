@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Locations Route Tests
  *
@@ -44,11 +45,6 @@ interface MockLocation {
   type: string
   createdAt: Date
   updatedAt: Date
-}
-
-/** Route context parameter type */
-interface RouteContext {
-  params: Promise<Record<string, string>>
 }
 
 // ============================================================================
