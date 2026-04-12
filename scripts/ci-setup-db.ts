@@ -14,7 +14,6 @@
  *   - DATABASE_SCHEMA: Schema name to create/reset (default: 'ci_test')
  */
 
-import { sql } from 'drizzle-orm'
 import postgres from 'postgres'
 
 async function setupCiDatabase() {
