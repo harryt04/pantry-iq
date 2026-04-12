@@ -49,16 +49,18 @@ test.describe('Dashboard E2E Tests', () => {
     await page.waitForTimeout(1000)
 
     // Check for the location card section - use exact text match to avoid strict mode violation
-    // The LocationOverviewCard title is "Locations" (empty) or "Locations (N)" (with data)
+    // The LocationOverviewCard title is "Locations (N)" (with data) - matches the section title, not the stat card
     await expect(
-      page.locator('main').getByText(/Locations/, { exact: false }),
+      page.locator('main').getByText(/Locations \(\d+\)/),
     ).toBeVisible()
 
     // Check that location name appears
     await expect(page.getByText('Test Restaurant')).toBeVisible()
 
-    // Check for transaction count display
-    await expect(page.locator('main').getByText('transactions')).toBeVisible()
+    // Check for transaction count display (specifically in location details, not stat card)
+    await expect(
+      page.locator('main').getByText(/\d+ transactions/),
+    ).toBeVisible()
   })
 
   test('Quick action links work and navigate to correct pages', async ({

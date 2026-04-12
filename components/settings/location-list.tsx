@@ -29,6 +29,7 @@ interface LocationListProps {
   onDelete: (locationId: string) => Promise<void>
   onAddNew: () => void
   isLoading?: boolean
+  refreshKey?: number
 }
 
 export function LocationList({
@@ -36,6 +37,7 @@ export function LocationList({
   onDelete,
   onAddNew,
   isLoading = false,
+  refreshKey = 0,
 }: LocationListProps) {
   const [locations, setLocations] = useState<Location[]>([])
   const [error, setError] = useState<string>('')
@@ -46,10 +48,10 @@ export function LocationList({
     locationName: string
   } | null>(null)
 
-  // Fetch locations on mount
+  // Fetch locations on mount or when refreshKey changes
   useEffect(() => {
     fetchLocations()
-  }, [])
+  }, [refreshKey])
 
   const fetchLocations = async () => {
     try {

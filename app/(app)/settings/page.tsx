@@ -24,6 +24,7 @@ export default function SettingsPage() {
   const [editingLocation, setEditingLocation] = useState<Location | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const handleAddNew = () => {
     setEditingLocation(null)
@@ -66,6 +67,8 @@ export default function SettingsPage() {
 
       setShowForm(false)
       setEditingLocation(null)
+      // Trigger refresh of LocationList
+      setRefreshKey((prev) => prev + 1)
     } finally {
       setIsLoading(false)
     }
@@ -80,6 +83,9 @@ export default function SettingsPage() {
       const error = await response.json()
       throw new Error(error.error || 'Failed to delete location')
     }
+
+    // Trigger refresh of LocationList
+    setRefreshKey((prev) => prev + 1)
   }
 
   const handleCancel = () => {
@@ -142,6 +148,7 @@ export default function SettingsPage() {
           onDelete={handleDelete}
           onAddNew={handleAddNew}
           isLoading={isLoading}
+          refreshKey={refreshKey}
         />
       </div>
     </div>
