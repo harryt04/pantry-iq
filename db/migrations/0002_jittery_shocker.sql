@@ -133,15 +133,15 @@ CREATE TABLE "waitlist_signups" (
 	CONSTRAINT "waitlist_signups_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
-DROP TABLE "placeholder" CASCADE;--> statement-breakpoint
-ALTER TABLE "account" ADD CONSTRAINT "account_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "session" ADD CONSTRAINT "session_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "pos_connections" ADD CONSTRAINT "pos_connections_locationId_fk" FOREIGN KEY ("locationId") REFERENCES "public"."locations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "csv_uploads" ADD CONSTRAINT "csv_uploads_locationId_fk" FOREIGN KEY ("locationId") REFERENCES "public"."locations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "transactions" ADD CONSTRAINT "transactions_locationId_fk" FOREIGN KEY ("locationId") REFERENCES "public"."locations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "weather" ADD CONSTRAINT "weather_locationId_fk" FOREIGN KEY ("locationId") REFERENCES "public"."locations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "places_cache" ADD CONSTRAINT "places_cache_locationId_fk" FOREIGN KEY ("locationId") REFERENCES "public"."locations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "conversations" ADD CONSTRAINT "conversations_locationId_fk" FOREIGN KEY ("locationId") REFERENCES "public"."locations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "messages" ADD CONSTRAINT "messages_conversationId_fk" FOREIGN KEY ("conversationId") REFERENCES "public"."conversations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+DROP TABLE IF EXISTS "placeholder" CASCADE;--> statement-breakpoint
+ALTER TABLE "account" ADD CONSTRAINT "account_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "session" ADD CONSTRAINT "session_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "pos_connections" ADD CONSTRAINT "pos_connections_locationId_fk" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "csv_uploads" ADD CONSTRAINT "csv_uploads_locationId_fk" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "transactions" ADD CONSTRAINT "transactions_locationId_fk" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "weather" ADD CONSTRAINT "weather_locationId_fk" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "places_cache" ADD CONSTRAINT "places_cache_locationId_fk" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "conversations" ADD CONSTRAINT "conversations_locationId_fk" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "messages" ADD CONSTRAINT "messages_conversationId_fk" FOREIGN KEY ("conversationId") REFERENCES "conversations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "transactions_locationId_date_idx" ON "transactions" USING btree ("locationId","date");--> statement-breakpoint
 CREATE UNIQUE INDEX "weather_locationId_date_unique" ON "weather" USING btree ("locationId","date");
