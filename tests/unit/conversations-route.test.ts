@@ -1533,10 +1533,15 @@ describe('Conversations Routes', () => {
         } as any
       })
 
+      // Delete OPENAI_API_KEY to simulate unavailable provider
+      const savedKey = process.env.OPENAI_API_KEY
+      delete process.env.OPENAI_API_KEY
+
+      // Set up mocks after deleting the env var so providers are initialized correctly
       const { getModel } = await import('@/lib/ai/models')
       vi.mocked(getModel).mockReturnValue({
-        provider: 'google',
-        id: 'gemini-2.0-flash-lite',
+        provider: 'openai',
+        id: 'gpt-4o',
       } as any)
 
       const { buildContextData } = await import('@/lib/ai/context-builder')
@@ -1547,12 +1552,6 @@ describe('Conversations Routes', () => {
 
       const { persistUserMessage } = await import('@/lib/ai/stream-handler')
       vi.mocked(persistUserMessage).mockResolvedValue(undefined as any)
-
-      // Delete OPENAI_API_KEY to simulate unavailable provider
-      const savedKey = process.env.OPENAI_API_KEY
-      delete process.env.OPENAI_API_KEY
-      // Clear the providers module cache so it re-evaluates env vars
-      vi.resetModules()
 
       const routeModule =
         await import('@/app/api/conversations/[id]/message/route')
