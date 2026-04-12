@@ -13,8 +13,9 @@ concurrency:
 
 env:
   NODE_VERSION: '20'
-  DATABASE_URL: postgres://postgres:postgres@localhost:5432/pantryiq
-  ZERO_UPSTREAM_DB: postgres://postgres:postgres@localhost:5432/pantryiq
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  ZERO_UPSTREAM_DB: ${{ secrets.ZERO_UPSTREAM_DB }}
+  DATABASE_SCHEMA: ci_test
   ZERO_PORT: '8001'
   NEXT_PUBLIC_ZERO_URL: http://localhost:8001
   BETTER_AUTH_SECRET: ci-secret-for-testing-only-32-chars-xx
@@ -30,21 +31,6 @@ jobs:
   ci:
     name: CI
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:18-alpine
-        env:
-          POSTGRES_DB: pantryiq
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -75,9 +61,12 @@ jobs:
       - name: Unit tests
         run: npm run test:unit
 
-      # ── E2E tests (sharded) ──────────────────
+      # ── Database & E2E tests ─────────────────
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
+
+      - name: Setup CI database schema
+        run: npx tsx scripts/ci-setup-db.ts
 
       - name: Run database migrations
         run: npm run db:migrate
@@ -90,21 +79,6 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1, 2, 3, 4]
-
-    services:
-      postgres:
-        image: postgres:18-alpine
-        env:
-          POSTGRES_DB: pantryiq
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -122,6 +96,9 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Setup CI database schema
+        run: npx tsx scripts/ci-setup-db.ts
 
       - name: Run database migrations
         run: npm run db:migrate
