@@ -1551,6 +1551,8 @@ describe('Conversations Routes', () => {
       // Delete OPENAI_API_KEY to simulate unavailable provider
       const savedKey = process.env.OPENAI_API_KEY
       delete process.env.OPENAI_API_KEY
+      // Clear the providers module cache so it re-evaluates env vars
+      vi.resetModules()
 
       const routeModule =
         await import('@/app/api/conversations/[id]/message/route')
