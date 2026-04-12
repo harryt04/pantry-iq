@@ -183,11 +183,18 @@ test.describe('Dashboard E2E Tests', () => {
   test('Protected route redirects unauthenticated users to login', async ({
     page,
   }) => {
-    // Sign out
+    // Sign out and clear session
     await page.evaluate(() => fetch('/api/auth/sign-out', { method: 'POST' }))
+    await page.context().clearCookies()
+    await page.evaluate(() => {
+      localStorage.clear()
+      sessionStorage.clear()
+    })
 
     // Try to access dashboard
-    await page.goto('http://localhost:3000/dashboard')
+    await page.goto('http://localhost:3000/dashboard', {
+      waitUntil: 'domcontentloaded',
+    })
 
     // Should redirect to login (client-side redirect via app layout)
     await page.waitForURL('**/login', { timeout: 15000 })
