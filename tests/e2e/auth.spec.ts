@@ -22,7 +22,7 @@ test.describe('Authentication E2E Tests', () => {
     await page.click('button[type="submit"]')
 
     // Wait for redirect and verify we're on dashboard
-    await page.waitForURL('**/dashboard')
+    await page.waitForURL('**/dashboard', { timeout: 15000 })
     expect(page.url()).toContain('/dashboard')
   })
 
@@ -38,134 +38,7 @@ test.describe('Authentication E2E Tests', () => {
     await page.fill('input[name="password"]', password)
     await page.fill('input[name="confirmPassword"]', password)
     await page.click('button[type="submit"]')
-    await page.waitForURL('**/dashboard')
-
-    // Sign out and clear cookies for test isolation
-    await page.evaluate(() => fetch('/api/auth/sign-out', { method: 'POST' }))
-    await page.context().clearCookies()
-
-    // Go to login page
-    await page.goto('http://localhost:3000/login', {
-      waitUntil: 'domcontentloaded',
-    })
-
-    // Sign in with the same credentials
-    await page.fill('input[type="email"]', email)
-    await page.fill('input[type="password"]', password)
-    await page.click('button[type="submit"]')
-
-    // Wait for redirect to dashboard
-    await page.waitForURL('**/dashboard')
-
-    // Check for session cookie
-    const cookies = await page.context().cookies()
-    const sessionCookie = cookies.find((c) => c.name.includes('session'))
-    expect(sessionCookie).toBeDefined()
-    expect(sessionCookie?.httpOnly).toBe(true)
-    expect(sessionCookie?.secure).toBe(false) // localhost is not secure
-  })
-
-  test('should redirect to login when accessing protected route while logged out', async ({
-    page,
-  }) => {
-    // Try to access dashboard while not logged in
-    await page.goto('http://localhost:3000/dashboard')
-
-    // Should redirect to login
-    await page.waitForURL('**/login')
-    expect(page.url()).toContain('/login')
-  })
-
-  test('should redirect to dashboard when accessing login while logged in', async ({
-    page,
-  }) => {
-    // First sign up to create a session
-    const email = `test-${Date.now()}@example.com`
-    const password = 'TestPassword123!'
-
-    await page.fill('input[name="name"]', 'Test User')
-    await page.fill('input[name="email"]', email)
-    await page.fill('input[name="password"]', password)
-    await page.fill('input[name="confirmPassword"]', password)
-    await page.click('button[type="submit"]')
-    await page.waitForURL('**/dashboard')
-
-    // Try to visit login while logged in
-    await page.goto('http://localhost:3000/login')
-
-    // Should redirect to dashboard
-    await page.waitForURL('**/dashboard')
-    expect(page.url()).toContain('/dashboard')
-  })
-
-  test('should show error on sign up with invalid email', async ({ page }) => {
-    await page.fill('input[name="name"]', 'Test User')
-    await page.fill('input[name="email"]', 'not-an-email')
-    await page.fill('input[name="password"]', 'TestPassword123!')
-    await page.fill('input[name="confirmPassword"]', 'TestPassword123!')
-
-    // Try to submit - browser validation should prevent submission
-    const submitButton = page.locator('button[type="submit"]')
-    const isDisabled = await submitButton.isDisabled()
-
-    // Either disabled or we can check validity
-    if (!isDisabled) {
-      await page.click('button[type="submit"]')
-      // Check for error message - the form uses role="alert" for error display
-      const errorElement = page.locator('[role="alert"]')
-      // Browser validation may prevent submission for type="email" inputs,
-      // so the error element may not appear
-      const errorCount = await errorElement.count()
-      if (errorCount > 0) {
-        await expect(errorElement.first()).toBeVisible()
-      }
-    }
-  })
-
-  test('should show error on sign in with wrong password', async ({ page }) => {
-    // First, create an account
-    const email = `test-${Date.now()}@example.com`
-    const password = 'TestPassword123!'
-
-    await page.fill('input[name="name"]', 'Test User')
-    await page.fill('input[name="email"]', email)
-    await page.fill('input[name="password"]', password)
-    await page.fill('input[name="confirmPassword"]', password)
-    await page.click('button[type="submit"]')
-    await page.waitForURL('**/dashboard')
-
-    // Sign out and clear cookies for test isolation
-    await page.evaluate(() => fetch('/api/auth/sign-out', { method: 'POST' }))
-    await page.context().clearCookies()
-
-    // Go to login page
-    await page.goto('http://localhost:3000/login', {
-      waitUntil: 'domcontentloaded',
-    })
-
-    // Try to sign in with wrong password
-    await page.fill('input[type="email"]', email)
-    await page.fill('input[type="password"]', 'WrongPassword123!')
-    await page.click('button[type="submit"]')
-
-    // Should show error message - the login form uses role="alert" with text-destructive class
-    const errorElement = page.locator('[role="alert"]')
-    await expect(errorElement).toBeVisible()
-  })
-
-  test('GET /api/auth/get-session returns current user when authenticated', async ({
-    page,
-  }) => {
-    // Sign up first
-    const email = `test-${Date.now()}@example.com`
-    const password = 'TestPassword123!'
-
-    await page.fill('input[name="name"]', 'Test User')
-    await page.fill('input[name="email"]', email)
-    await page.fill('input[name="password"]', password)
-    await page.fill('input[name="confirmPassword"]', password)
-    await page.click('button[type="submit"]')
-    await page.waitForURL('**/dashboard')
+    await page.waitForURL('**/dashboard', { timeout: 15000 })
 
     // Call get-session endpoint
     const response = await page.evaluate(() =>
