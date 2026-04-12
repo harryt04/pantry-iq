@@ -346,9 +346,7 @@ function mockDatabaseForDeleteRoute(
  * Mock database for routes that list with location verification
  */
 function mockDatabaseForListRoute(result: Record<string, unknown>[]) {
-  vi.mocked(db.select).mockReturnValue(
-    createMockDatabaseChain(result) as any,
-  )
+  vi.mocked(db.select).mockReturnValue(createMockDatabaseChain(result) as any)
 }
 
 // ============================================================================
@@ -462,9 +460,7 @@ describe('Conversations Routes', () => {
       const chain = createMockDatabaseChain()
       chain.where = vi.fn().mockRejectedValue(new Error('DB error'))
 
-      vi.mocked(db.select).mockReturnValue(
-        chain as any,
-      )
+      vi.mocked(db.select).mockReturnValue(chain as any)
 
       const routeModule = await import('@/app/api/conversations/route')
       const request = createRequest()
@@ -735,9 +731,7 @@ describe('Conversations Routes', () => {
       const chain = createMockDatabaseChain()
       chain.where = vi.fn().mockRejectedValue(new Error('DB error'))
 
-      vi.mocked(db.select).mockReturnValue(
-        chain as any,
-      )
+      vi.mocked(db.select).mockReturnValue(chain as any)
 
       const routeModule = await import('@/app/api/conversations/[id]/route')
       const request = createRequest()
@@ -1053,9 +1047,7 @@ describe('Conversations Routes', () => {
       const chain = createMockDatabaseChain()
       chain.where = vi.fn().mockRejectedValue(new Error('DB error'))
 
-      vi.mocked(db.select).mockReturnValue(
-        chain as any,
-      )
+      vi.mocked(db.select).mockReturnValue(chain as any)
 
       const routeModule = await import('@/app/api/conversations/[id]/route')
       const request = createRequest(
@@ -1303,9 +1295,7 @@ describe('Conversations Routes', () => {
       const chain = createMockDatabaseChain()
       chain.where = vi.fn().mockRejectedValue(new Error('DB error'))
 
-      vi.mocked(db.select).mockReturnValue(
-        chain as any,
-      )
+      vi.mocked(db.select).mockReturnValue(chain as any)
 
       const routeModule =
         await import('@/app/api/conversations/[id]/history/route')
