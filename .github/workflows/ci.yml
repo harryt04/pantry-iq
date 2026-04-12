@@ -11,26 +11,25 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  NODE_VERSION: '20'
-  DATABASE_URL: ${{ secrets.DATABASE_URL }}
-  ZERO_UPSTREAM_DB: ${{ secrets.ZERO_UPSTREAM_DB }}
-  DATABASE_SCHEMA: ci_test
-  ZERO_PORT: '8001'
-  NEXT_PUBLIC_ZERO_URL: http://localhost:8001
-  BETTER_AUTH_SECRET: ci-secret-for-testing-only-32-chars-xx
-  BETTER_AUTH_URL: http://localhost:3000
-  NEXT_PUBLIC_BETTER_AUTH_URL: http://localhost:3000
-  NEXT_PUBLIC_POSTHOG_KEY: ''
-  NEXT_PUBLIC_POSTHOG_HOST: https://us.i.posthog.com
-  OPENAI_API_KEY: stub
-  ANTHROPIC_API_KEY: stub
-  GOOGLE_GENERATIVE_AI_API_KEY: stub
-
 jobs:
   ci:
     name: CI
     runs-on: ubuntu-latest
+    env:
+      NODE_VERSION: '20'
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      ZERO_UPSTREAM_DB: ${{ secrets.ZERO_UPSTREAM_DB }}
+      DATABASE_SCHEMA: ci_test
+      ZERO_PORT: '8001'
+      NEXT_PUBLIC_ZERO_URL: http://localhost:8001
+      BETTER_AUTH_SECRET: ci-secret-for-testing-only-32-chars-xx
+      BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_POSTHOG_KEY: ''
+      NEXT_PUBLIC_POSTHOG_HOST: https://us.i.posthog.com
+      OPENAI_API_KEY: stub
+      ANTHROPIC_API_KEY: stub
+      GOOGLE_GENERATIVE_AI_API_KEY: stub
 
     steps:
       - uses: actions/checkout@v4
@@ -79,6 +78,21 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1, 2, 3, 4]
+    env:
+      NODE_VERSION: '20'
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      ZERO_UPSTREAM_DB: ${{ secrets.ZERO_UPSTREAM_DB }}
+      DATABASE_SCHEMA: ci_test
+      ZERO_PORT: '8001'
+      NEXT_PUBLIC_ZERO_URL: http://localhost:8001
+      BETTER_AUTH_SECRET: ci-secret-for-testing-only-32-chars-xx
+      BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_POSTHOG_KEY: ''
+      NEXT_PUBLIC_POSTHOG_HOST: https://us.i.posthog.com
+      OPENAI_API_KEY: stub
+      ANTHROPIC_API_KEY: stub
+      GOOGLE_GENERATIVE_AI_API_KEY: stub
 
     steps:
       - uses: actions/checkout@v4
