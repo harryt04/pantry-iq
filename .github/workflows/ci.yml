@@ -16,7 +16,7 @@ jobs:
     name: CI
     runs-on: ubuntu-latest
     env:
-      NODE_VERSION: '20'
+      NODE_VERSION: '22'
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       ZERO_UPSTREAM_DB: ${{ secrets.ZERO_UPSTREAM_DB }}
       DATABASE_SCHEMA: ci_test
@@ -79,7 +79,7 @@ jobs:
       matrix:
         shard: [1, 2, 3, 4]
     env:
-      NODE_VERSION: '20'
+      NODE_VERSION: '22'
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       ZERO_UPSTREAM_DB: ${{ secrets.ZERO_UPSTREAM_DB }}
       DATABASE_SCHEMA: ci_test
