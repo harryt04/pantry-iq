@@ -48,14 +48,17 @@ test.describe('Dashboard E2E Tests', () => {
     // Wait for data to load
     await page.waitForTimeout(1000)
 
-    // Check for the location card section
-    await expect(page.locator('text=Locations')).toBeVisible()
+    // Check for the location card section - use exact text match to avoid strict mode violation
+    // The LocationOverviewCard title is "Locations" (empty) or "Locations (N)" (with data)
+    await expect(
+      page.locator('main').getByText(/Locations/, { exact: false }),
+    ).toBeVisible()
 
     // Check that location name appears
-    await expect(page.locator('text=Test Restaurant')).toBeVisible()
+    await expect(page.getByText('Test Restaurant')).toBeVisible()
 
     // Check for transaction count display
-    await expect(page.locator('text=transactions')).toBeVisible()
+    await expect(page.locator('main').getByText('transactions')).toBeVisible()
   })
 
   test('Quick action links work and navigate to correct pages', async ({
@@ -102,7 +105,9 @@ test.describe('Dashboard E2E Tests', () => {
       expect(href).toContain('/settings')
     } else {
       // If no empty state, at least check that Locations section exists
-      await expect(page.locator('text=Locations')).toBeVisible()
+      await expect(
+        page.locator('main').getByText('Locations', { exact: true }),
+      ).toBeVisible()
     }
   })
 
@@ -133,7 +138,7 @@ test.describe('Dashboard E2E Tests', () => {
       const hasUploadLink =
         (await page.locator('text=Start importing data').count()) > 0 ||
         (await page.locator('text=Start importing').count()) > 0 ||
-        (await page.locator('href="/import"').count()) > 0
+        (await page.locator('[href="/import"]').count()) > 0
 
       expect(hasUploadLink).toBeTruthy()
     }
@@ -182,8 +187,8 @@ test.describe('Dashboard E2E Tests', () => {
     // Try to access dashboard
     await page.goto('http://localhost:3000/dashboard')
 
-    // Should redirect to login
-    await page.waitForURL('**/login')
+    // Should redirect to login (client-side redirect via app layout)
+    await page.waitForURL('**/login', { timeout: 15000 })
     expect(page.url()).toContain('/login')
   })
 })

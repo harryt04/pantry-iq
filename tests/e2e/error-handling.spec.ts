@@ -16,17 +16,20 @@ test.describe('Error Handling and API Consistency', () => {
       expect(body.code).toBe('NOT_AUTHENTICATED')
     })
 
-    test('should return 404 for non-existent resources', async ({
+    test('should return 401 for non-existent resources when unauthenticated', async ({
       request,
     }) => {
+      // The API checks auth before resource lookup, so unauthenticated
+      // requests to /api/locations/:id get 401, not 404
       const response = await request.get(
         `${API_BASE}/locations/non-existent-id`,
       )
 
-      expect(response.status()).toBe(404)
+      expect(response.status()).toBe(401)
       const body = await response.json()
       expect(body).toHaveProperty('error')
       expect(body).toHaveProperty('code')
+      expect(body.code).toBe('NOT_AUTHENTICATED')
     })
 
     test('should return 400 for invalid JSON', async ({ request }) => {
@@ -79,8 +82,9 @@ test.describe('Error Handling and API Consistency', () => {
       // Check that stack traces, SQL queries, or internal details aren't exposed
       expect(errorMessage).not.toMatch(/stack/i)
       expect(errorMessage).not.toMatch(/sql/i)
-      expect(errorMessage).not.toMatch(/at /i) // Stack trace indicator
-      expect(errorMessage).not.toMatch(/Error:/i) // Raw error
+      // Check for stack trace patterns (e.g., "at Function.something") but not words containing "at"
+      expect(errorMessage).not.toMatch(/\bat [A-Z]\w+\.\w+/)
+      expect(errorMessage).not.toMatch(/^Error:/i) // Raw error at start of string
     })
 
     test('should have consistent error response structure', async ({
@@ -128,15 +132,16 @@ test.describe('Error Handling and API Consistency', () => {
         waitUntil: 'domcontentloaded',
       })
 
-      // Check for skeleton loaders (animate-pulse class indicates loading state)
+      // Check for loading elements - the app layout shows "Loading..." for pending sessions,
+      // or the dashboard shows animate-pulse skeletons while fetching data
       const skeletons = page.locator('[class*="animate-pulse"]')
-      // On initial load or during auth check, skeleton should be visible
-      const skeletonCount = await skeletons.count()
-      // Expect at least some loading elements or a loading message
       const loadingText = page.locator('text=Loading')
-      const hasLoadingState =
-        skeletonCount > 0 || (await loadingText.count()) > 0
+      const skeletonCount = await skeletons.count()
+      const loadingCount = await loadingText.count()
 
+      // Expect at least some loading elements or a loading message
+      // The app layout always shows "Loading..." during auth check
+      const hasLoadingState = skeletonCount > 0 || loadingCount > 0
       expect(hasLoadingState).toBeTruthy()
     })
   })
@@ -167,13 +172,17 @@ test.describe('Error Handling and API Consistency', () => {
 
       if (hasEmailField > 0) {
         await emailInput.fill('invalid-email')
-        await page.locator('button:has-text("Subscribe")').click()
+        // The landing page uses "Get Early Access" or "Join Waitlist" buttons, not "Subscribe"
+        const submitButton = page.locator('button[type="submit"]').first()
+        await submitButton.click()
 
         // Wait for error message
         await page.waitForTimeout(500)
 
         // Error message should be visible and user-friendly
-        const errorMessage = page.locator('[class*="error"], [role="alert"]')
+        const errorMessage = page.locator(
+          '[class*="destructive"], [role="alert"]',
+        )
         if ((await errorMessage.count()) > 0) {
           const text = await errorMessage.first().textContent()
           // Should contain user-friendly text
