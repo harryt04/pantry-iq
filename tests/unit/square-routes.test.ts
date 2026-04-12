@@ -605,9 +605,7 @@ describe('Square Routes', () => {
 
       // Mock insert to return connection
       const insertChain = createMockDatabaseChain([connection])
-      vi.mocked(db.insert).mockReturnValue(
-        insertChain as any,
-      )
+      vi.mocked(db.insert).mockReturnValue(insertChain as any)
 
       const routeModule = await import('@/app/api/square/callback/route')
       const url = new URL(
@@ -638,9 +636,7 @@ describe('Square Routes', () => {
       mockSquareClient()
 
       const insertChain = createMockDatabaseChain([connection])
-      vi.mocked(db.insert).mockReturnValue(
-        insertChain as any,
-      )
+      vi.mocked(db.insert).mockReturnValue(insertChain as any)
 
       const routeModule = await import('@/app/api/square/callback/route')
       const url = new URL(
@@ -669,9 +665,7 @@ describe('Square Routes', () => {
       mockSquareClient()
 
       const insertChain = createMockDatabaseChain([connection])
-      vi.mocked(db.insert).mockReturnValue(
-        insertChain as any,
-      )
+      vi.mocked(db.insert).mockReturnValue(insertChain as any)
 
       const routeModule = await import('@/app/api/square/callback/route')
       const url = new URL(
@@ -706,9 +700,7 @@ describe('Square Routes', () => {
       mockSquareClient()
 
       const insertChain = createMockDatabaseChain([connection])
-      vi.mocked(db.insert).mockReturnValue(
-        insertChain as any,
-      )
+      vi.mocked(db.insert).mockReturnValue(insertChain as any)
 
       const routeModule = await import('@/app/api/square/callback/route')
       const url = new URL(

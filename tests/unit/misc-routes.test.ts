@@ -457,9 +457,7 @@ describe('Miscellaneous Routes (Task 3D)', () => {
 
     it('should return list of places', async () => {
       const places = [{ id: 'p1', name: 'Food Bank' }]
-      vi.mocked(getDonationOpportunities).mockResolvedValueOnce(
-        places as any,
-      )
+      vi.mocked(getDonationOpportunities).mockResolvedValueOnce(places as any)
       const route = await import('@/app/api/places/[location]/route')
       const res = await route.GET(
         createRequest('http://localhost:3000/api/places/loc-123?zipCode=10001'),
@@ -478,9 +476,7 @@ describe('Miscellaneous Routes (Task 3D)', () => {
 
     it('should pass location and zipCode to client', async () => {
       const places = [{ id: 'p1', name: 'Shelter' }]
-      vi.mocked(getDonationOpportunities).mockResolvedValueOnce(
-        places as any,
-      )
+      vi.mocked(getDonationOpportunities).mockResolvedValueOnce(places as any)
       const route = await import('@/app/api/places/[location]/route')
       await route.GET(
         createRequest('http://localhost:3000/api/places/loc-456?zipCode=90210'),
