@@ -13,6 +13,8 @@
  * Database operations are tested through integration with actual Drizzle ORM mocks.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // Mock CSV parser
@@ -56,7 +58,7 @@ describe('CSV Field Mapping Route Handler', () => {
         Date: 'date',
         Product: 'item',
         Qty: 'qty',
-      })
+      } as any)
 
       const result = await suggestMappings(headers, sample)
 
@@ -104,7 +106,7 @@ describe('CSV Field Mapping Route Handler', () => {
         Date: 'date',
         UnmappableColumn: null,
         Qty: 'qty',
-      })
+      } as any)
 
       const result = await suggestMappings(headers, sample)
 
@@ -120,7 +122,7 @@ describe('CSV Field Mapping Route Handler', () => {
         date: 'date',
         item: 'item',
         qty: 'qty',
-      })
+      } as any)
 
       const result = await suggestMappings(headers, sample)
 

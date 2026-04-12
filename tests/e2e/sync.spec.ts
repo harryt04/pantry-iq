@@ -64,10 +64,13 @@ test.describe('Zero Sync E2E', () => {
     const performanceData = await page.evaluate(() => {
       const navigation = performance.getEntriesByType(
         'navigation',
-      )[0] as PerformanceNavigationTiming
+      )[0] as PerformanceNavigationTiming & {
+        navigationStart?: number
+        domContentLoaded?: number
+      }
       return {
-        navigationStart: navigation.navigationStart,
-        domContentLoaded: navigation.domContentLoaded,
+        navigationStart: navigation.fetchStart || 0,
+        domContentLoaded: navigation.domInteractive || 0,
       }
     })
 

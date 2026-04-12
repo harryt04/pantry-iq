@@ -260,7 +260,7 @@ describe('captureAnalyticsEvent()', () => {
 
   beforeEach(() => {
     consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {})
-    delete (process.env as NodeJS.ProcessEnv).NODE_ENV
+    vi.stubEnv('NODE_ENV', undefined)
   })
 
   afterEach(() => {
@@ -269,7 +269,7 @@ describe('captureAnalyticsEvent()', () => {
 
   describe('Production Environment Filtering', () => {
     it('should not capture event when NODE_ENV is not production', () => {
-      process.env.NODE_ENV = 'development'
+      vi.stubEnv('NODE_ENV', 'development')
 
       captureAnalyticsEvent('test-event', { property: 'value' })
 
@@ -277,7 +277,7 @@ describe('captureAnalyticsEvent()', () => {
     })
 
     it('should not capture event in test environment', () => {
-      process.env.NODE_ENV = 'test'
+      vi.stubEnv('NODE_ENV', 'test')
 
       captureAnalyticsEvent('test-event', { property: 'value' })
 
@@ -285,7 +285,7 @@ describe('captureAnalyticsEvent()', () => {
     })
 
     it('should not capture event in staging environment', () => {
-      process.env.NODE_ENV = 'staging'
+      vi.stubEnv('NODE_ENV', 'staging')
 
       captureAnalyticsEvent('test-event', { property: 'value' })
 
@@ -293,7 +293,7 @@ describe('captureAnalyticsEvent()', () => {
     })
 
     it('should not capture event when NODE_ENV is undefined', () => {
-      delete (process.env as NodeJS.ProcessEnv).NODE_ENV
+      vi.stubEnv('NODE_ENV', undefined)
 
       captureAnalyticsEvent('test-event', { property: 'value' })
 
@@ -303,9 +303,11 @@ describe('captureAnalyticsEvent()', () => {
 
   describe('Server-Side Filtering (window check)', () => {
     it('should not capture event on server-side (no window)', () => {
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
       const windowSpy = vi.spyOn(globalThis, 'window', 'get')
-      windowSpy.mockReturnValueOnce(undefined as undefined)
+      windowSpy.mockReturnValueOnce(
+        undefined as unknown as Window & typeof globalThis,
+      )
 
       captureAnalyticsEvent('test-event', { property: 'value' })
 
@@ -317,7 +319,7 @@ describe('captureAnalyticsEvent()', () => {
 
   describe('Non-Blocking Behavior', () => {
     it('should return void immediately', () => {
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
 
       const result = captureAnalyticsEvent('test-event', {})
 
@@ -325,7 +327,7 @@ describe('captureAnalyticsEvent()', () => {
     })
 
     it('should not block execution', () => {
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
 
       const startTime = performance.now()
       captureAnalyticsEvent('test-event', {})
@@ -337,7 +339,7 @@ describe('captureAnalyticsEvent()', () => {
 
   describe('Event Properties Handling', () => {
     it('should accept event name and properties', async () => {
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
 
       expect(() => {
         captureAnalyticsEvent('user_signup', {
@@ -348,7 +350,7 @@ describe('captureAnalyticsEvent()', () => {
     })
 
     it('should handle undefined properties gracefully', async () => {
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
 
       expect(() => {
         captureAnalyticsEvent('event-name', undefined)
@@ -356,7 +358,7 @@ describe('captureAnalyticsEvent()', () => {
     })
 
     it('should handle empty properties object', async () => {
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
 
       expect(() => {
         captureAnalyticsEvent('event-name', {})
@@ -364,7 +366,7 @@ describe('captureAnalyticsEvent()', () => {
     })
 
     it('should handle complex property types', async () => {
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
 
       expect(() => {
         captureAnalyticsEvent('complex-event', {
@@ -381,7 +383,7 @@ describe('captureAnalyticsEvent()', () => {
 
   describe('Error Handling & Resilience', () => {
     it('should silently fail without breaking the app', async () => {
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
 
       expect(() => {
         captureAnalyticsEvent('test-event', { critical: 'data' })
@@ -394,7 +396,7 @@ describe('captureAnalyticsEvent()', () => {
     })
 
     it('should handle environment where posthog-js is not available', async () => {
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
 
       expect(() => {
         captureAnalyticsEvent('test-event', {})

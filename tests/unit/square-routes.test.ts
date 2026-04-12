@@ -56,7 +56,7 @@ vi.mock('@/lib/square/encryption', () => ({
 // Mock Square sync module
 vi.mock('@/lib/square/sync', () => ({
   triggerBackgroundSync: vi.fn().mockResolvedValue(undefined),
-  SquareSyncManager: vi.fn(function () {
+  SquareSyncManager: vi.fn(function (this: SquareSyncManager) {
     this.syncTransactions = vi.fn().mockResolvedValue({ synced: 5, errors: 0 })
   }),
 }))

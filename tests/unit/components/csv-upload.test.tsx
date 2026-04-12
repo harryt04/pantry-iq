@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { CSVUpload } from '@/components/import/csv-upload'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 // Mock the analytics utility
 vi.mock('@/lib/analytics-utils', () => ({
   captureAnalyticsEvent: vi.fn(),
@@ -17,14 +19,15 @@ vi.mock('@/components/import/field-mapping-ui', () => ({
 }))
 
 // Mock fetch globally
-global.fetch = vi.fn()
+const mockFetch = vi.fn()
+global.fetch = mockFetch as any as typeof fetch
 
 describe('CSVUpload Component', () => {
   const mockLocationId = 'loc-123'
 
   beforeEach(() => {
     vi.clearAllMocks()
-    ;(global.fetch as jest.Mock).mockClear()
+    mockFetch.mockClear()
   })
 
   describe('Rendering', () => {
@@ -76,7 +79,9 @@ describe('CSVUpload Component', () => {
     })
 
     it('should handle file selection via input change', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ;(
+        global.fetch as unknown as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           uploadId: 'upload-123',
@@ -123,7 +128,9 @@ describe('CSVUpload Component', () => {
 
   describe('Upload Progress', () => {
     it('should show upload progress indicator during upload', async () => {
-      ;(global.fetch as jest.Mock).mockImplementationOnce(
+      ;(
+        global.fetch as unknown as ReturnType<typeof vi.fn>
+      ).mockImplementationOnce(
         () =>
           new Promise((resolve) => {
             setTimeout(
@@ -164,7 +171,9 @@ describe('CSVUpload Component', () => {
 
   describe('Error Handling', () => {
     it('should show error message for failed upload', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ;(
+        global.fetch as unknown as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce({
         ok: false,
         json: async () => ({
           error: 'Invalid file format',
@@ -188,9 +197,9 @@ describe('CSVUpload Component', () => {
     })
 
     it('should show error message for network error', async () => {
-      ;(global.fetch as jest.Mock).mockRejectedValueOnce(
-        new Error('Network error occurred'),
-      )
+      ;(
+        global.fetch as unknown as ReturnType<typeof vi.fn>
+      ).mockRejectedValueOnce(new Error('Network error occurred'))
 
       render(<CSVUpload locationId={mockLocationId} />)
 
@@ -209,7 +218,9 @@ describe('CSVUpload Component', () => {
     })
 
     it('should display error with Alert component', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ;(
+        global.fetch as unknown as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce({
         ok: false,
         json: async () => ({
           error: 'File too large',
@@ -245,7 +256,9 @@ describe('CSVUpload Component', () => {
         status: 'success',
       }
 
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ;(
+        global.fetch as unknown as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce({
         ok: true,
         json: async () => mockResponse,
       })
@@ -303,7 +316,9 @@ describe('CSVUpload Component', () => {
     })
 
     it('should handle file drop', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ;(
+        global.fetch as unknown as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           uploadId: 'upload-123',
@@ -340,7 +355,9 @@ describe('CSVUpload Component', () => {
 
   describe('Field Mapping Display', () => {
     it('should show field mapping UI after successful upload', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ;(
+        global.fetch as unknown as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           uploadId: 'upload-123',
@@ -369,7 +386,9 @@ describe('CSVUpload Component', () => {
     })
 
     it('should display filename and row count in upload result card', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ;(
+        global.fetch as unknown as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           uploadId: 'upload-123',
@@ -403,7 +422,9 @@ describe('CSVUpload Component', () => {
     })
 
     it('should call onCancel from field mapping to reset form', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ;(
+        global.fetch as unknown as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           uploadId: 'upload-123',
@@ -465,7 +486,9 @@ describe('CSVUpload Component', () => {
 
   describe('API Request', () => {
     it('should send file to correct API endpoint', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ;(
+        global.fetch as unknown as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           uploadId: 'upload-123',
@@ -497,7 +520,9 @@ describe('CSVUpload Component', () => {
     })
 
     it('should include location_id in the request', async () => {
-      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ;(
+        global.fetch as unknown as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           uploadId: 'upload-123',
@@ -521,7 +546,8 @@ describe('CSVUpload Component', () => {
       fireEvent.change(fileInput, { target: { files: [file] } })
 
       await waitFor(() => {
-        const callArgs = (global.fetch as jest.Mock).mock.calls[0]
+        const callArgs = (global.fetch as unknown as ReturnType<typeof vi.fn>)
+          .mock.calls[0]
         const formData = callArgs[1].body as FormData
         expect(formData.get('location_id')).toBe(mockLocationId)
       })

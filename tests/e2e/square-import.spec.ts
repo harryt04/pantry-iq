@@ -50,13 +50,14 @@ test.describe('Square Integration', () => {
     // Verify OAuth URL format (would be captured by route interception)
     // For this test, we check that the request was made with proper params
     if (navigationUrl) {
-      expect(navigationUrl).toContain('oauth2/authorize')
-      expect(navigationUrl).toContain('client_id=')
-      expect(navigationUrl).toContain('response_type=code')
-      expect(navigationUrl).toContain('redirect_uri=')
-      expect(navigationUrl).toContain('state=')
-      expect(navigationUrl).toContain('MERCHANT_PROFILE_READ')
-      expect(navigationUrl).toContain('ORDERS_READ')
+      const url = navigationUrl
+      expect(url.includes('oauth2/authorize')).toBeTruthy()
+      expect(url.includes('client_id=')).toBeTruthy()
+      expect(url.includes('response_type=code')).toBeTruthy()
+      expect(url.includes('redirect_uri=')).toBeTruthy()
+      expect(url.includes('state=')).toBeTruthy()
+      expect(url.includes('MERCHANT_PROFILE_READ')).toBeTruthy()
+      expect(url.includes('ORDERS_READ')).toBeTruthy()
     }
   })
 
