@@ -66,7 +66,7 @@ describe('Test Data Generation Script', () => {
   describe('CLI Argument Parsing', () => {
     it('should generate transactions with --type transactions', () => {
       const output = execSync(
-        'npx ts-node scripts/generate-test-csv.ts --records 10 --type transactions',
+        'npx tsx scripts/generate-test-csv.ts --records 10 --type transactions',
         { cwd: process.cwd(), encoding: 'utf-8' },
       ).trim()
 
@@ -77,7 +77,7 @@ describe('Test Data Generation Script', () => {
 
     it('should generate inventory with --type inventory', () => {
       const output = execSync(
-        'npx ts-node scripts/generate-test-csv.ts --records 10 --type inventory',
+        'npx tsx scripts/generate-test-csv.ts --records 10 --type inventory',
         { cwd: process.cwd(), encoding: 'utf-8' },
       ).trim()
 
@@ -88,7 +88,7 @@ describe('Test Data Generation Script', () => {
 
     it('should generate invoices with --type invoices', () => {
       const output = execSync(
-        'npx ts-node scripts/generate-test-csv.ts --records 10 --type invoices',
+        'npx tsx scripts/generate-test-csv.ts --records 10 --type invoices',
         { cwd: process.cwd(), encoding: 'utf-8' },
       ).trim()
 
@@ -100,7 +100,7 @@ describe('Test Data Generation Script', () => {
     it('should respect --records parameter', () => {
       for (const recordCount of [5, 20, 50]) {
         const output = execSync(
-          `npx ts-node scripts/generate-test-csv.ts --records ${recordCount} --type transactions`,
+          `npx tsx scripts/generate-test-csv.ts --records ${recordCount} --type transactions`,
           { cwd: process.cwd(), encoding: 'utf-8' },
         ).trim()
 
@@ -111,7 +111,7 @@ describe('Test Data Generation Script', () => {
 
     it('should display help with --help', () => {
       const output = execSync(
-        'npx ts-node scripts/generate-test-csv.ts --help',
+        'npx tsx scripts/generate-test-csv.ts --help',
         {
           cwd: process.cwd(),
           encoding: 'utf-8',
@@ -131,7 +131,7 @@ describe('Test Data Generation Script', () => {
       const endDate = '2024-01-31'
 
       const output = execSync(
-        `npx ts-node scripts/generate-test-csv.ts --records 50 --start-date ${startDate} --end-date ${endDate} --type transactions`,
+        `npx tsx scripts/generate-test-csv.ts --records 50 --start-date ${startDate} --end-date ${endDate} --type transactions`,
         { cwd: process.cwd(), encoding: 'utf-8' },
       ).trim()
 
@@ -162,7 +162,7 @@ describe('Test Data Generation Script', () => {
       }
 
       execSync(
-        `npx ts-node scripts/generate-test-csv.ts --records 20 --type transactions --output ${testOutputFile}`,
+        `npx tsx scripts/generate-test-csv.ts --records 20 --type transactions --output ${testOutputFile}`,
         { cwd: process.cwd() },
       )
 
