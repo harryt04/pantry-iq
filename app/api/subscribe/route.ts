@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostHogClient } from '@/lib/posthog-server'
+import { getPostHogClient, shutdownPostHog } from '@/lib/posthog-server'
 import { ApiError, logErrorSafely } from '@/lib/api-error'
 
 export async function POST(request: NextRequest) {
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
           source: 'api',
         },
       })
-      await posthog.shutdown()
+      await shutdownPostHog()
     }
 
     // Forward to the external API

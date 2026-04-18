@@ -48,8 +48,10 @@ test.describe('Zero Sync E2E', () => {
   test('should reject Zero client for unauthenticated user', async ({
     page,
   }) => {
-    // Sign out
-    await page.evaluate(() => fetch('/api/auth/sign-out', { method: 'POST' }))
+    // Sign out - await the fetch response so the session cookie is cleared
+    await page.evaluate(() =>
+      fetch('/api/auth/sign-out', { method: 'POST' }).then((r) => r.text()),
+    )
 
     // Clear local storage
     await page.evaluate(() => {
@@ -57,10 +59,10 @@ test.describe('Zero Sync E2E', () => {
       sessionStorage.clear()
     })
 
-    // Try to navigate to app
-    await page.goto('/dashboard', { waitUntil: 'networkidle' })
+    // Try to navigate to app (don't use networkidle - the loading spinner keeps network active)
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' })
 
-    // Should redirect to login
+    // Should redirect to login (client-side redirect via useEffect)
     await expect(page).toHaveURL(/login/, { timeout: 15000 })
   })
 
@@ -130,16 +132,22 @@ test.describe('Zero Sync E2E', () => {
   }) => {
     // Navigate to conversations
     await page.goto('/conversations')
+
+    // Wait for the page to fully load and settle
+    const mainContent = page.locator('main')
+    await expect(mainContent).toBeVisible({ timeout: 10000 })
     await page.waitForTimeout(2000)
 
-    // Verify no error messages indicating permission issues
-    const errorMessages = page.locator('[role="alert"]')
-    const errorCount = await errorMessages.count()
-
-    expect(errorCount).toBe(0) // No permission errors
+    // Verify no permission/RLS-related error messages
+    // Check for specific permission error text rather than any role="alert"
+    // (generic alerts may appear for unrelated reasons like missing locations)
+    const permissionErrors = page.locator(
+      'text=/permission denied|unauthorized|forbidden|row.level.security/i',
+    )
+    const permissionErrorCount = await permissionErrors.count()
+    expect(permissionErrorCount).toBe(0) // No permission errors
 
     // Verify page loaded successfully
-    const mainContent = page.locator('main')
     await expect(mainContent).toBeVisible()
   })
 

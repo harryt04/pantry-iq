@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { parseCSV } from '@/lib/csv/parser'
+import { readCSVFile, deleteCSVFile } from '@/lib/csv/storage'
 import {
   suggestMappings,
   validateMapping,
@@ -10,42 +11,6 @@ import { db } from '@/db'
 import { csvUploads } from '@/db/schema/csv-uploads'
 import { transactions } from '@/db/schema/transactions'
 import { eq } from 'drizzle-orm'
-
-/**
- * Read CSV file - only evaluated at runtime
- * Uses indirect approach to prevent Turbopack static analysis
- */
-async function readCSVFile(uploadId: string): Promise<Buffer> {
-  // Use indirect path resolution to hide from Turbopack
-  const fsModule = 'fs' + '/promises'
-  const pathModule = 'path'
-  const { readFile } = await import(fsModule)
-  const { join: joinPaths } = await import(pathModule)
-  const uploadDir = process.env.CSV_UPLOAD_PATH || '/tmp/csv-uploads'
-  // Use a helper function to obscure the join call
-  const filePath = [uploadDir, uploadId].reduce((prev, curr) =>
-    joinPaths(/*turbopackIgnore: true*/ prev, curr),
-  )
-  return readFile(filePath)
-}
-
-/**
- * Delete CSV file - only evaluated at runtime
- * Uses indirect approach to prevent Turbopack static analysis
- */
-async function deleteCSVFile(uploadId: string): Promise<void> {
-  // Use indirect path resolution to hide from Turbopack
-  const fsModule = 'fs' + '/promises'
-  const pathModule = 'path'
-  const { unlink } = await import(fsModule)
-  const { join: joinPaths } = await import(pathModule)
-  const uploadDir = process.env.CSV_UPLOAD_PATH || '/tmp/csv-uploads'
-  // Use a helper function to obscure the join call
-  const filePath = [uploadDir, uploadId].reduce((prev, curr) =>
-    joinPaths(/*turbopackIgnore: true*/ prev, curr),
-  )
-  await unlink(filePath)
-}
 
 interface FieldMappingRequest {
   uploadId: string

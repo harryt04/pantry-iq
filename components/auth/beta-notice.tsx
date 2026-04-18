@@ -13,10 +13,10 @@ import {
 import { AlertCircle } from 'lucide-react'
 
 export function BetaNotice() {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(true)
 
   useEffect(() => {
-    // Dialog is already open by default
+    setIsOpen(true)
   }, [])
 
   return (

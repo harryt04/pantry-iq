@@ -35,14 +35,26 @@ export function SquareConnect({
       setStatus('syncing')
       captureAnalyticsEvent('square-connected', {})
       onConnectionSuccess?.(connId)
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname)
+      // Clean up Square-specific params but preserve location_id
+      const cleanParams = new URLSearchParams()
+      const locationIdParam = params.get('location_id')
+      if (locationIdParam) cleanParams.set('location_id', locationIdParam)
+      const cleanUrl =
+        window.location.pathname +
+        (cleanParams.toString() ? '?' + cleanParams.toString() : '')
+      window.history.replaceState({}, document.title, cleanUrl)
     } else if (errorParam) {
       const details = params.get('details')
       setError(details || errorParam)
       setStatus('error')
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname)
+      // Clean up Square-specific params but preserve location_id
+      const cleanParams = new URLSearchParams()
+      const locationIdParam = params.get('location_id')
+      if (locationIdParam) cleanParams.set('location_id', locationIdParam)
+      const cleanUrl =
+        window.location.pathname +
+        (cleanParams.toString() ? '?' + cleanParams.toString() : '')
+      window.history.replaceState({}, document.title, cleanUrl)
     }
   }, [onConnectionSuccess])
 
@@ -146,7 +158,7 @@ export function SquareConnect({
       case 'pending':
         return 'Pending connection'
       case 'syncing':
-        return 'Syncing transactions...'
+        return 'Syncing transactions'
       case 'synced':
         return `Connected and synced${lastSync ? ` (${lastSync.toLocaleString()})` : ''}`
       case 'error':
