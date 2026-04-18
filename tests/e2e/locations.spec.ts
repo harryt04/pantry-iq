@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { dismissBetaNotice } from './helpers'
 
 test.describe('Location Management E2E', () => {
   test.beforeEach(async ({ page }) => {
@@ -7,6 +8,7 @@ test.describe('Location Management E2E', () => {
     const password = 'TestPassword123!'
 
     await page.goto('http://localhost:3000/signup')
+    await dismissBetaNotice(page)
     await page.fill('input[name="name"]', 'Location Test User')
     await page.fill('input[name="email"]', email)
     await page.fill('input[name="password"]', password)

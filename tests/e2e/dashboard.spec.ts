@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { dismissBetaNotice } from './helpers'
 
 test.describe('Dashboard E2E Tests', () => {
   // Sign in before each test
@@ -9,6 +10,7 @@ test.describe('Dashboard E2E Tests', () => {
 
     // Sign up first
     await page.goto('http://localhost:3000/signup')
+    await dismissBetaNotice(page)
     await page.fill('input[name="name"]', 'Test User')
     await page.fill('input[name="email"]', email)
     await page.fill('input[name="password"]', password)

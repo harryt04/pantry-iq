@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
+import { dismissBetaNotice } from './helpers'
 
 /**
  * Create a test CSV file with sample data
@@ -35,6 +36,7 @@ test.describe('CSV Import E2E', () => {
     const password = 'TestPassword123!'
 
     await page.goto('http://localhost:3000/signup')
+    await dismissBetaNotice(page)
     await page.fill('input[name="name"]', 'CSV Test User')
     await page.fill('input[name="email"]', email)
     await page.fill('input[name="password"]', password)

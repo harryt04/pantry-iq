@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { dismissBetaNotice } from './helpers'
 
 /**
  * E2E Tests for Zero Sync Integration
@@ -21,6 +22,7 @@ test.describe('Zero Sync E2E', () => {
     testEmail = `test-sync-${Date.now()}@example.com`
 
     await page.goto('http://localhost:3000/signup')
+    await dismissBetaNotice(page)
     await page.fill('input[name="name"]', 'Sync Test User')
     await page.fill('input[name="email"]', testEmail)
     await page.fill('input[name="password"]', testPassword)

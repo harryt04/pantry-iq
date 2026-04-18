@@ -1,9 +1,11 @@
 import { test, expect } from '@playwright/test'
+import { dismissBetaNotice } from './helpers'
 
 test.describe('Authentication E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
     // Go to signup page before each test
     await page.goto('http://localhost:3000/signup')
+    await dismissBetaNotice(page)
   })
 
   test('should sign up with valid email/password and redirect to dashboard', async ({
