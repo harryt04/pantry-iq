@@ -55,7 +55,8 @@ test.describe('Zero Sync E2E', () => {
       fetch('/api/auth/sign-out', { method: 'POST' }).then((r) => r.text()),
     )
 
-    // Clear local storage
+    // Clear cookies and local storage
+    await page.context().clearCookies()
     await page.evaluate(() => {
       localStorage.clear()
       sessionStorage.clear()
