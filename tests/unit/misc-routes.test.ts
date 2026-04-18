@@ -60,6 +60,7 @@ vi.mock('@/lib/posthog-server', () => ({
     capture: vi.fn(),
     shutdown: vi.fn().mockResolvedValue(undefined),
   })),
+  shutdownPostHog: vi.fn().mockResolvedValue(undefined),
 }))
 
 global.fetch = vi.fn() as any
