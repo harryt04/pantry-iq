@@ -43,9 +43,12 @@ export async function getZeroClient(userId: string): Promise<Zero<Schema>> {
       // Optionally wait for connection with timeout
       try {
         await new Promise<void>((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            reject(new Error('Zero connection timeout'))
-          }, parseInt(process.env.ZERO_CONNECTION_TIMEOUT ?? '10000')) // Configurable; set ZERO_CONNECTION_TIMEOUT=2000 in CI
+          const timeout = setTimeout(
+            () => {
+              reject(new Error('Zero connection timeout'))
+            },
+            parseInt(process.env.ZERO_CONNECTION_TIMEOUT ?? '10000'),
+          ) // Configurable; set ZERO_CONNECTION_TIMEOUT=2000 in CI
 
           interface ConnectionStateSubscription {
             subscribe: (

@@ -387,10 +387,7 @@ describe('field-mapper', () => {
     })
 
     it('should handle a header with multiple meta-characters without throwing', async () => {
-      const mapping = await suggestMappings(
-        ['Revenue (USD) [2024]'],
-        [],
-      )
+      const mapping = await suggestMappings(['Revenue (USD) [2024]'], [])
       expect(mapping['Revenue (USD) [2024]']).toBeDefined()
     })
   })

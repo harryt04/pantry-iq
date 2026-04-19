@@ -11,6 +11,7 @@
     "start": "next start",
     "prettify": "prettier --write .",
     "lint": "eslint",
+    "fixLint": "prettier --write . && eslint --fix .",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
