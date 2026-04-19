@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { dismissBetaNotice } from './helpers'
+import { dismissBetaNotice, signUpUser } from './helpers'
 
 /**
  * E2E Tests for Zero Sync Integration
@@ -20,15 +20,7 @@ test.describe('Zero Sync E2E', () => {
   test.beforeEach(async ({ page }) => {
     // Sign up to create an authenticated session
     testEmail = `test-sync-${Date.now()}@example.com`
-
-    await page.goto('http://localhost:3000/signup')
-    await dismissBetaNotice(page)
-    await page.fill('input[name="name"]', 'Sync Test User')
-    await page.fill('input[name="email"]', testEmail)
-    await page.fill('input[name="password"]', testPassword)
-    await page.fill('input[name="confirmPassword"]', testPassword)
-    await page.click('button[type="submit"]')
-    await page.waitForURL('**/dashboard', { timeout: 15000 })
+    await signUpUser(page, testEmail, testPassword, 'Sync Test User')
   })
 
   test('should initialize Zero client for authenticated user', async ({
@@ -75,9 +67,6 @@ test.describe('Zero Sync E2E', () => {
     // Navigate to conversations page
     await page.goto('/conversations')
 
-    // Wait for the page to load
-    await page.waitForTimeout(2000)
-
     // Conversation list should render - look for the page heading or conversation container
     const conversationsHeading = page.locator('h1:has-text("Conversations")')
     await expect(conversationsHeading).toBeVisible({ timeout: 10000 })
@@ -99,12 +88,11 @@ test.describe('Zero Sync E2E', () => {
     await page.goto('/conversations', { waitUntil: 'domcontentloaded' })
 
     // Wait for page to load
-    await page.waitForTimeout(2000)
+    const mainContent = page.locator('main')
+    await expect(mainContent).toBeVisible({ timeout: 10000 })
 
     // This test validates the concept but may not have real conversation data
     // Just verify the page loads without errors
-    const mainContent = page.locator('main')
-    await expect(mainContent).toBeVisible({ timeout: 10000 })
   })
 
   test('should reactively update dashboard when imports complete', async ({
@@ -139,7 +127,6 @@ test.describe('Zero Sync E2E', () => {
     // Wait for the page to fully load and settle
     const mainContent = page.locator('main')
     await expect(mainContent).toBeVisible({ timeout: 10000 })
-    await page.waitForTimeout(2000)
 
     // Verify no permission/RLS-related error messages
     // Check for specific permission error text rather than any role="alert"
@@ -208,11 +195,8 @@ test.describe('Zero Sync E2E', () => {
     await page.goto('/conversations')
 
     // Wait for data to load
-    await page.waitForTimeout(3000)
-
-    // Verify page content is visible
     const mainContent = page.locator('main')
-    await expect(mainContent).toBeVisible()
+    await expect(mainContent).toBeVisible({ timeout: 10000 })
 
     // Go offline
     await page.context().setOffline(true)
@@ -229,22 +213,18 @@ test.describe('Zero Sync E2E', () => {
   }) => {
     // Navigate to conversations
     await page.goto('/conversations')
-    await page.waitForTimeout(2000)
+
+    // Wait for page to load
+    const mainContent = page.locator('main')
+    await expect(mainContent).toBeVisible({ timeout: 10000 })
 
     // Go offline
     await page.context().setOffline(true)
 
-    // Wait while offline
-    await page.waitForTimeout(1000)
-
     // Go back online
     await page.context().setOffline(false)
 
-    // Wait for reconnection
-    await page.waitForTimeout(2000)
-
-    // Verify page is still functional
-    const mainContent = page.locator('main')
+    // Verify page is still functional after reconnection
     await expect(mainContent).toBeVisible()
   })
 })

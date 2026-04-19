@@ -322,7 +322,8 @@ function parseArguments(): {
     } else if (arg === '--end-date' && args[i + 1]) {
       // Parse end date and add one day to ensure we include the entire end date
       const endDate = new Date(args[i + 1])
-      options.endDate = new Date(endDate.getTime() + 24 * 60 * 60 * 1000)
+      endDate.setDate(endDate.getDate() + 1)
+      options.endDate = endDate
       i++
     } else if (arg === '--type' && args[i + 1]) {
       options.type = args[i + 1] as CsvType

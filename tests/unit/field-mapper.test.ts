@@ -1,4 +1,11 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+
+// Mock the 'ai' package so tests can intercept generateText without real HTTP calls.
+// The factory is hoisted by Vitest; individual tests can override via mockResolvedValueOnce.
+vi.mock('ai', () => ({
+  generateText: vi.fn(),
+}))
+
 import {
   suggestMappings,
   validateMapping,
@@ -6,6 +13,7 @@ import {
   applyMapping,
   FieldMapping,
 } from '@/lib/csv/field-mapper'
+import { generateText } from 'ai'
 
 describe('field-mapper', () => {
   describe('validateMapping', () => {
@@ -227,6 +235,163 @@ describe('field-mapper', () => {
       // Verify mapping was generated
       expect(mapping).toBeDefined()
       expect(typeof mapping).toBe('object')
+    })
+  })
+
+  describe('word-boundary matching', () => {
+    it('should NOT map "Server Name" to "item" (name is too generic)', async () => {
+      // 'name' was removed from FALLBACK_PATTERNS to avoid false positives.
+      // Word-boundary matching also ensures that partial word hits don't fire.
+      const mapping = await suggestMappings(['Server Name'], [])
+      // Should be null — 'Server Name' should not match 'item'
+      expect(mapping['Server Name']).toBeNull()
+    })
+
+    it('should NOT map "Username" to "item"', async () => {
+      const mapping = await suggestMappings(['Username'], [])
+      expect(mapping['Username']).toBeNull()
+    })
+
+    it('should still map "item name" to "item"', async () => {
+      const mapping = await suggestMappings(['item name'], [])
+      expect(mapping['item name']).toBe('item')
+    })
+
+    it('should still map "product name" to "item"', async () => {
+      const mapping = await suggestMappings(['product name'], [])
+      expect(mapping['product name']).toBe('item')
+    })
+  })
+
+  describe('duplicate target deduplication (first-match-wins)', () => {
+    it('should assign "date" to "Sale Date" and null to "Transaction Time"', async () => {
+      // Both 'Sale Date' and 'Transaction Time' would match 'date'.
+      // First-match-wins: 'Sale Date' appears first and takes 'date'.
+      // 'Transaction Time' must be null (target already assigned).
+      const headers = ['Sale Date', 'Transaction Time']
+      const mapping = await suggestMappings(headers, [])
+
+      expect(mapping['Sale Date']).toBe('date')
+      expect(mapping['Transaction Time']).toBeNull()
+    })
+
+    it('should assign "date" to the first matching header and null to subsequent ones', async () => {
+      const headers = ['date', 'timestamp', 'time']
+      const mapping = await suggestMappings(headers, [])
+
+      // 'date' matches first
+      expect(mapping['date']).toBe('date')
+      // 'timestamp' and 'time' also match 'date' but target is taken
+      expect(mapping['timestamp']).toBeNull()
+      expect(mapping['time']).toBeNull()
+    })
+
+    it('should allow different headers to map to different target fields', async () => {
+      const headers = ['Sale Date', 'product name', 'qty']
+      const mapping = await suggestMappings(headers, [])
+
+      expect(mapping['Sale Date']).toBe('date')
+      expect(mapping['product name']).toBe('item')
+      expect(mapping['qty']).toBe('qty')
+    })
+  })
+
+  describe('stub API key gating', () => {
+    const originalEnv = process.env
+
+    beforeEach(() => {
+      process.env = { ...originalEnv }
+    })
+
+    afterEach(() => {
+      process.env = originalEnv
+      vi.restoreAllMocks()
+    })
+
+    it('should use fallback pattern matching when OPENAI_API_KEY is "stub"', async () => {
+      process.env.OPENAI_API_KEY = 'stub'
+      process.env.ANTHROPIC_API_KEY = undefined
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY = undefined
+
+      const headers = ['Sale Date', 'product name', 'qty']
+      const mapping = await suggestMappings(headers, [])
+
+      // Fallback pattern matching should still produce correct results
+      expect(mapping['Sale Date']).toBe('date')
+      expect(mapping['product name']).toBe('item')
+      expect(mapping['qty']).toBe('qty')
+    })
+
+    it('should use fallback pattern matching when OPENAI_API_KEY is "test"', async () => {
+      process.env.OPENAI_API_KEY = 'test'
+      process.env.ANTHROPIC_API_KEY = undefined
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY = undefined
+
+      const mapping = await suggestMappings(['date', 'item'], [])
+
+      expect(mapping['date']).toBe('date')
+      expect(mapping['item']).toBe('item')
+    })
+
+    it('should use fallback when key is shorter than 20 characters', async () => {
+      process.env.OPENAI_API_KEY = 'short-key'
+      process.env.ANTHROPIC_API_KEY = undefined
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY = undefined
+
+      const mapping = await suggestMappings(['date', 'item'], [])
+
+      expect(mapping['date']).toBe('date')
+      expect(mapping['item']).toBe('item')
+    })
+
+    it('should attempt AI path when key is >= 20 chars and not a stub', async () => {
+      // Provide a realistic-length key and mock generateText so the test
+      // does not make a real network call.
+      vi.mocked(generateText).mockResolvedValueOnce({
+        text: '{"mapping": {"date": "date", "item": "item"}}',
+      } as Awaited<ReturnType<typeof generateText>>)
+
+      process.env.OPENAI_API_KEY = 'sk-realkey1234567890abcdefghij'
+      process.env.ANTHROPIC_API_KEY = undefined
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY = undefined
+
+      const mapping = await suggestMappings(['date', 'item'], [])
+
+      // generateText was called (AI path attempted) — mock returned a valid mapping
+      expect(vi.mocked(generateText)).toHaveBeenCalled()
+      expect(mapping['date']).toBe('date')
+      expect(mapping['item']).toBe('item')
+    })
+  })
+
+  describe('regex escaping — meta-characters in headers', () => {
+    it('should handle "Item (Count)" without throwing', async () => {
+      const mapping = await suggestMappings(['Item (Count)'], [])
+      expect(mapping['Item (Count)']).toBeDefined()
+      // null or a valid StandardField — not an exception
+    })
+
+    it('should handle "Price [USD]" without throwing', async () => {
+      const mapping = await suggestMappings(['Price [USD]'], [])
+      expect(mapping['Price [USD]']).toBeDefined()
+    })
+
+    it('should handle "Date+Time" without throwing', async () => {
+      const mapping = await suggestMappings(['Date+Time'], [])
+      expect(mapping['Date+Time']).toBeDefined()
+    })
+
+    it('should handle "Cost^2" without throwing', async () => {
+      const mapping = await suggestMappings(['Cost^2'], [])
+      expect(mapping['Cost^2']).toBeDefined()
+    })
+
+    it('should handle a header with multiple meta-characters without throwing', async () => {
+      const mapping = await suggestMappings(
+        ['Revenue (USD) [2024]'],
+        [],
+      )
+      expect(mapping['Revenue (USD) [2024]']).toBeDefined()
     })
   })
 })

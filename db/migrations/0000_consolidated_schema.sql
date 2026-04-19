@@ -3,7 +3,7 @@
 -- Safe to run on a fresh schema; existing databases already have these applied individually.
 
 -- Better Auth tables
-CREATE TABLE "user" (
+CREATE TABLE IF NOT EXISTS "user" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"email" text NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE "user" (
 	CONSTRAINT "user_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
-CREATE TABLE "session" (
+CREATE TABLE IF NOT EXISTS "session" (
 	"id" text PRIMARY KEY NOT NULL,
 	"expiresAt" timestamp NOT NULL,
 	"token" text NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE "session" (
 	CONSTRAINT "session_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
-CREATE TABLE "account" (
+CREATE TABLE IF NOT EXISTS "account" (
 	"id" text PRIMARY KEY NOT NULL,
 	"accountId" text NOT NULL,
 	"providerId" text NOT NULL,
@@ -42,7 +42,7 @@ CREATE TABLE "account" (
 	"updatedAt" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "verification" (
+CREATE TABLE IF NOT EXISTS "verification" (
 	"id" text PRIMARY KEY NOT NULL,
 	"identifier" text NOT NULL,
 	"value" text NOT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE "verification" (
 --> statement-breakpoint
 
 -- App tables
-CREATE TABLE "locations" (
+CREATE TABLE IF NOT EXISTS "locations" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"userId" text NOT NULL,
 	"name" text NOT NULL,
@@ -64,7 +64,7 @@ CREATE TABLE "locations" (
 	"createdAt" timestamp NOT NULL DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "pos_connections" (
+CREATE TABLE IF NOT EXISTS "pos_connections" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"locationId" uuid NOT NULL,
 	"provider" text NOT NULL DEFAULT 'square',
@@ -75,7 +75,7 @@ CREATE TABLE "pos_connections" (
 	"createdAt" timestamp NOT NULL DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "csv_uploads" (
+CREATE TABLE IF NOT EXISTS "csv_uploads" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"locationId" uuid NOT NULL,
 	"filename" text NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE "csv_uploads" (
 	"uploadedAt" timestamp NOT NULL DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "transactions" (
+CREATE TABLE IF NOT EXISTS "transactions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"locationId" uuid NOT NULL,
 	"date" text NOT NULL,
@@ -99,7 +99,7 @@ CREATE TABLE "transactions" (
 	"createdAt" timestamp NOT NULL DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "weather" (
+CREATE TABLE IF NOT EXISTS "weather" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"locationId" uuid NOT NULL,
 	"date" text NOT NULL,
@@ -109,7 +109,7 @@ CREATE TABLE "weather" (
 	"cachedAt" timestamp NOT NULL DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "places_cache" (
+CREATE TABLE IF NOT EXISTS "places_cache" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"locationId" uuid NOT NULL,
 	"orgName" text NOT NULL,
@@ -120,14 +120,14 @@ CREATE TABLE "places_cache" (
 	"cachedAt" timestamp NOT NULL DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "conversations" (
+CREATE TABLE IF NOT EXISTS "conversations" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"locationId" uuid NOT NULL,
 	"defaultModel" text NOT NULL DEFAULT 'gemini-2.0-flash-lite',
 	"createdAt" timestamp NOT NULL DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "messages" (
+CREATE TABLE IF NOT EXISTS "messages" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"conversationId" uuid NOT NULL,
 	"role" text NOT NULL,
@@ -138,7 +138,7 @@ CREATE TABLE "messages" (
 	"createdAt" timestamp NOT NULL DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "waitlist_signups" (
+CREATE TABLE IF NOT EXISTS "waitlist_signups" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"email" text NOT NULL,
 	"createdAt" timestamp NOT NULL DEFAULT now(),
@@ -147,32 +147,59 @@ CREATE TABLE "waitlist_signups" (
 --> statement-breakpoint
 
 -- Foreign key constraints
-ALTER TABLE "session" ADD CONSTRAINT "session_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE cascade ON UPDATE no action;
+DO $$ BEGIN
+  ALTER TABLE "session" ADD CONSTRAINT "session_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
 --> statement-breakpoint
-ALTER TABLE "account" ADD CONSTRAINT "account_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE cascade ON UPDATE no action;
+DO $$ BEGIN
+  ALTER TABLE "account" ADD CONSTRAINT "account_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
 --> statement-breakpoint
-ALTER TABLE "pos_connections" ADD CONSTRAINT "pos_connections_location_id_fk" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE cascade ON UPDATE no action;
+DO $$ BEGIN
+  ALTER TABLE "pos_connections" ADD CONSTRAINT "pos_connections_location_id_fk" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
 --> statement-breakpoint
-ALTER TABLE "csv_uploads" ADD CONSTRAINT "csv_uploads_location_id_fk" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE cascade ON UPDATE no action;
+DO $$ BEGIN
+  ALTER TABLE "csv_uploads" ADD CONSTRAINT "csv_uploads_location_id_fk" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
 --> statement-breakpoint
-ALTER TABLE "transactions" ADD CONSTRAINT "transactions_location_id_fk" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE cascade ON UPDATE no action;
+DO $$ BEGIN
+  ALTER TABLE "transactions" ADD CONSTRAINT "transactions_location_id_fk" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
 --> statement-breakpoint
-ALTER TABLE "weather" ADD CONSTRAINT "weather_location_id_fk" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE cascade ON UPDATE no action;
+DO $$ BEGIN
+  ALTER TABLE "weather" ADD CONSTRAINT "weather_location_id_fk" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
 --> statement-breakpoint
-ALTER TABLE "places_cache" ADD CONSTRAINT "places_cache_location_id_fk" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE cascade ON UPDATE no action;
+DO $$ BEGIN
+  ALTER TABLE "places_cache" ADD CONSTRAINT "places_cache_location_id_fk" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
 --> statement-breakpoint
-ALTER TABLE "conversations" ADD CONSTRAINT "conversations_location_id_fk" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE cascade ON UPDATE no action;
+DO $$ BEGIN
+  ALTER TABLE "conversations" ADD CONSTRAINT "conversations_location_id_fk" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
 --> statement-breakpoint
-ALTER TABLE "messages" ADD CONSTRAINT "messages_conversation_id_fk" FOREIGN KEY ("conversationId") REFERENCES "conversations"("id") ON DELETE cascade ON UPDATE no action;
+DO $$ BEGIN
+  ALTER TABLE "messages" ADD CONSTRAINT "messages_conversation_id_fk" FOREIGN KEY ("conversationId") REFERENCES "conversations"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
 --> statement-breakpoint
 
 -- Indexes
-CREATE INDEX "session_userId_idx" ON "session" ("userId");
+CREATE INDEX IF NOT EXISTS "session_userId_idx" ON "session" ("userId");
 --> statement-breakpoint
-CREATE INDEX "account_userId_idx" ON "account" ("userId");
+CREATE INDEX IF NOT EXISTS "account_userId_idx" ON "account" ("userId");
 --> statement-breakpoint
-CREATE INDEX "verification_identifier_idx" ON "verification" ("identifier");
+CREATE INDEX IF NOT EXISTS "verification_identifier_idx" ON "verification" ("identifier");
 --> statement-breakpoint
-CREATE INDEX "transactions_location_id_date_idx" ON "transactions" ("locationId", "date");
+CREATE INDEX IF NOT EXISTS "transactions_location_id_date_idx" ON "transactions" ("locationId", "date");
 --> statement-breakpoint
-CREATE UNIQUE INDEX "weather_location_id_date_unique" ON "weather" ("locationId", "date");
+CREATE UNIQUE INDEX IF NOT EXISTS "weather_location_id_date_unique" ON "weather" ("locationId", "date");

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostHogClient, shutdownPostHog } from '@/lib/posthog-server'
+import { getPostHogClient } from '@/lib/posthog-server'
 import { ApiError, logErrorSafely } from '@/lib/api-error'
 
 export async function POST(request: NextRequest) {
@@ -41,7 +41,8 @@ export async function POST(request: NextRequest) {
           source: 'api',
         },
       })
-      await shutdownPostHog()
+      // Do NOT call shutdownPostHog() here — singleton is shared across requests
+      // PostHog client flushes automatically via flushAt: 1 / flushInterval: 0 config
     }
 
     // Forward to the external API

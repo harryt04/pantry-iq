@@ -107,6 +107,12 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Setup CI database schema
+        run: npx tsx scripts/ci-setup-db.ts
+
+      - name: Run database migrations
+        run: npm run db:migrate
+
       - name: E2E tests (shard ${{ matrix.shard }}/${{ strategy.job-total }})
         run: npx playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }}
         env:

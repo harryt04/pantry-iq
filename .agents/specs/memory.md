@@ -17,19 +17,19 @@
 
 | File | Status | Agent | Notes |
 |------|--------|-------|-------|
-| `db/migrations/0000_consolidated_schema.sql` | NOT STARTED | WU-0.1 | MODIFY: add IF NOT EXISTS to all DDL |
-| `lib/zero/index.ts` | NOT STARTED | WU-0.2, WU-0.3 | WU-0.2: timeout env var. WU-0.3: hook signatures. Different lines — no conflict. |
-| `.env.sample` | NOT STARTED | WU-0.2 | MODIFY: add ZERO_CONNECTION_TIMEOUT var |
-| `app/api/subscribe/route.ts` | NOT STARTED | WU-0.4 | MODIFY: remove shutdownPostHog() call |
-| `tests/e2e/sync.spec.ts` | NOT STARTED | WU-0.5 | MODIFY: fix hardcoded URLs and waitForTimeout |
-| `.github/workflows/ci.yml` | NOT STARTED | WU-0.6 | MODIFY: add DB setup steps to e2e job |
-| `scripts/generate-test-csv.ts` | NOT STARTED | WU-0.6 | MODIFY: DST-safe date increment |
+| `db/migrations/0000_consolidated_schema.sql` | COMPLETE | WU-0.1 | MODIFY: add IF NOT EXISTS to all DDL |
+| `lib/zero/index.ts` | WU-0.2 COMPLETE, WU-0.3 COMPLETE | WU-0.2, WU-0.3 | WU-0.2 COMPLETE: timeout env var done. WU-0.3 COMPLETE: hook signatures. |
+| `.env.sample` | COMPLETE | WU-0.2 | MODIFY: add ZERO_CONNECTION_TIMEOUT var |
+| `app/api/subscribe/route.ts` | COMPLETE | WU-0.4 | MODIFY: remove shutdownPostHog() call |
+| `tests/e2e/sync.spec.ts` | COMPLETE | WU-0.5 | MODIFY: fix hardcoded URLs and waitForTimeout |
+| `.github/workflows/ci.yml` | COMPLETE | WU-0.6 | MODIFY: add DB setup steps to e2e job |
+| `scripts/generate-test-csv.ts` | COMPLETE | WU-0.6 | MODIFY: DST-safe date increment |
 
 ### Phase 2: Unit Tests (Layer 1 — depends on Phase 1)
 
 | File | Status | Agent | Notes |
 |------|--------|-------|-------|
-| `tests/unit/field-mapper.test.ts` (or existing equivalent) | NOT STARTED | WU-1.1 | CREATE or MODIFY: add tests for new field-mapper behavior |
+| `tests/unit/field-mapper.test.ts` (or existing equivalent) | COMPLETE | WU-1.1 | MODIFY: added 16 tests for word-boundary matching, duplicate deduplication, stub API key gating, and regex escaping |
 
 ---
 
@@ -118,4 +118,9 @@ export async function POST(req: NextRequest) {
 
 | Agent | Completed At | Notes |
 |-------|-------------|-------|
-| (none yet) | | |
+| WU-0.3 | Sat Apr 18 2026 | No callers found for useLocations()/useConversations() with args — no code changes needed, WU-0.3 complete |
+| WU-0.5 | Sat Apr 18 2026 | Replaced hardcoded localhost:3000 URLs with relative paths, removed all waitForTimeout calls with deterministic element/URL waits, refactored beforeEach to use signUpUser() helper |
+| WU-0.1 | Sat Apr 18 2026 | Made all DDL in 0000_consolidated_schema.sql idempotent: CREATE TABLE IF NOT EXISTS (13 tables), CREATE INDEX IF NOT EXISTS (4), CREATE UNIQUE INDEX IF NOT EXISTS (1), FK ADD CONSTRAINT wrapped in DO $$ BEGIN...EXCEPTION WHEN duplicate_object blocks (9 constraints) |
+| WU-0.6 | Sat Apr 18 2026 | Added ci-setup-db.ts + db:migrate steps to e2e job in ci.yml (before Playwright); replaced millisecond DST-unsafe date arithmetic with setDate(getDate()+1) in generate-test-csv.ts |
+| WU-0.4 | Sat Apr 18 2026 | Removed shutdownPostHog() call and import from app/api/subscribe/route.ts. Client configured with flushAt:1/flushInterval:0 — auto-flushes on each event. |
+| WU-1.1 | Sat Apr 18 2026 | Added 16 unit tests to field-mapper.test.ts covering: word-boundary matching (4 tests), duplicate target deduplication (3 tests), stub API key gating (4 tests), regex escaping (5 tests). All 38 tests pass. |
