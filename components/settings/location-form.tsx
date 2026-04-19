@@ -98,7 +98,7 @@ export function LocationForm({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
           {error && (
             <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
               {error}

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { dismissBetaNotice } from './helpers'
 
 test.describe('Dashboard E2E Tests', () => {
   // Sign in before each test
@@ -9,6 +10,7 @@ test.describe('Dashboard E2E Tests', () => {
 
     // Sign up first
     await page.goto('http://localhost:3000/signup')
+    await dismissBetaNotice(page)
     await page.fill('input[name="name"]', 'Test User')
     await page.fill('input[name="email"]', email)
     await page.fill('input[name="password"]', password)
@@ -29,7 +31,7 @@ test.describe('Dashboard E2E Tests', () => {
 
   test('Shows location info and transaction count', async ({ page }) => {
     // First create a location via API
-    const locationResponse = await page.evaluate(async () => {
+    await page.evaluate(async () => {
       const response = await fetch('/api/locations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,14 +50,19 @@ test.describe('Dashboard E2E Tests', () => {
     // Wait for data to load
     await page.waitForTimeout(1000)
 
-    // Check for the location card section
-    await expect(page.locator('text=Locations')).toBeVisible()
+    // Check for the location card section - use exact text match to avoid strict mode violation
+    // The LocationOverviewCard title is "Locations (N)" (with data) - matches the section title, not the stat card
+    await expect(
+      page.locator('main').getByText(/Locations \(\d+\)/),
+    ).toBeVisible()
 
     // Check that location name appears
-    await expect(page.locator('text=Test Restaurant')).toBeVisible()
+    await expect(page.getByText('Test Restaurant')).toBeVisible()
 
-    // Check for transaction count display
-    await expect(page.locator('text=transactions')).toBeVisible()
+    // Check for transaction count display (specifically in location details, not stat card)
+    await expect(
+      page.locator('main').getByText(/\d+ transactions/),
+    ).toBeVisible()
   })
 
   test('Quick action links work and navigate to correct pages', async ({
@@ -102,7 +109,9 @@ test.describe('Dashboard E2E Tests', () => {
       expect(href).toContain('/settings')
     } else {
       // If no empty state, at least check that Locations section exists
-      await expect(page.locator('text=Locations')).toBeVisible()
+      await expect(
+        page.locator('main').getByText('Locations', { exact: true }),
+      ).toBeVisible()
     }
   })
 
@@ -133,7 +142,7 @@ test.describe('Dashboard E2E Tests', () => {
       const hasUploadLink =
         (await page.locator('text=Start importing data').count()) > 0 ||
         (await page.locator('text=Start importing').count()) > 0 ||
-        (await page.locator('href="/import"').count()) > 0
+        (await page.locator('[href="/import"]').count()) > 0
 
       expect(hasUploadLink).toBeTruthy()
     }
@@ -141,7 +150,7 @@ test.describe('Dashboard E2E Tests', () => {
 
   test('Dashboard is read-only (no edit forms)', async ({ page }) => {
     // Create a location for this test
-    const locationResponse = await page.evaluate(async () => {
+    await page.evaluate(async () => {
       const response = await fetch('/api/locations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -159,7 +168,6 @@ test.describe('Dashboard E2E Tests', () => {
 
     // Check that there are no edit buttons or forms on the dashboard
     const editButtons = page.locator('button:has-text("Edit")')
-    const forms = page.locator('form')
 
     await expect(editButtons).toHaveCount(0)
 
@@ -177,14 +185,21 @@ test.describe('Dashboard E2E Tests', () => {
   test('Protected route redirects unauthenticated users to login', async ({
     page,
   }) => {
-    // Sign out
+    // Sign out and clear session
     await page.evaluate(() => fetch('/api/auth/sign-out', { method: 'POST' }))
+    await page.context().clearCookies()
+    await page.evaluate(() => {
+      localStorage.clear()
+      sessionStorage.clear()
+    })
 
     // Try to access dashboard
-    await page.goto('http://localhost:3000/dashboard')
+    await page.goto('http://localhost:3000/dashboard', {
+      waitUntil: 'domcontentloaded',
+    })
 
-    // Should redirect to login
-    await page.waitForURL('**/login')
+    // Should redirect to login (client-side redirect via app layout)
+    await page.waitForURL('**/login', { timeout: 15000 })
     expect(page.url()).toContain('/login')
   })
 })

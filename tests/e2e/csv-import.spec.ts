@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
+import { dismissBetaNotice } from './helpers'
 
 /**
  * Create a test CSV file with sample data
@@ -30,10 +31,38 @@ test.describe('CSV Import E2E', () => {
     // Create test CSV file
     testCSVPath = createTestCSV()
 
-    // Note: Assumes you have a location created in your test database
-    // You may need to set this up in a real scenario or mock authentication
-    // For now, we'll navigate to the import page with a mock location ID
-    await page.goto('/import?location_id=test-location-id')
+    // Sign up to create an authenticated session
+    const email = `test-csv-${Date.now()}@example.com`
+    const password = 'TestPassword123!'
+
+    await page.goto('http://localhost:3000/signup')
+    await dismissBetaNotice(page)
+    await page.fill('input[name="name"]', 'CSV Test User')
+    await page.fill('input[name="email"]', email)
+    await page.fill('input[name="password"]', password)
+    await page.fill('input[name="confirmPassword"]', password)
+    await page.click('button[type="submit"]')
+
+    // Wait for redirect to dashboard
+    await page.waitForURL('**/dashboard', { timeout: 15000 })
+
+    // Create a test location via API
+    const locationResult = await page.evaluate(async () => {
+      const response = await fetch('/api/locations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'CSV Test Location',
+          zipCode: '10001',
+          type: 'restaurant',
+        }),
+      })
+      return response.json()
+    })
+
+    // Navigate to import page with the real location ID
+    const locationId = locationResult?.id || 'test-location-id'
+    await page.goto(`/import?location_id=${locationId}`)
   })
 
   test.afterEach(async () => {
@@ -54,10 +83,12 @@ test.describe('CSV Import E2E', () => {
     // Wait for upload to complete and preview to appear
     await page.waitForSelector('text="Map Fields"')
 
-    // Verify preview shows data
-    await expect(page.locator('text="Date"')).toBeVisible()
-    await expect(page.locator('text="Item"')).toBeVisible()
-    await expect(page.locator('text="Widget A"')).toBeVisible()
+    // Verify preview shows data - look in the preview table
+    const previewTable = page.locator('table')
+    await expect(previewTable).toBeVisible()
+    await expect(previewTable.locator('text="Date"')).toBeVisible()
+    await expect(previewTable.locator('text="Item"')).toBeVisible()
+    await expect(previewTable.locator('text="Widget A"')).toBeVisible()
   })
 
   test('should show AI-suggested field mappings', async ({ page }) => {
@@ -71,9 +102,10 @@ test.describe('CSV Import E2E', () => {
     // Verify mapping UI is visible
     await expect(page.locator('text="Confirm & Import"')).toBeVisible()
 
-    // Check that dropdown selects are present for each column
-    const selects = page.locator('select')
-    const selectCount = await selects.count()
+    // Check that shadcn Select triggers are present for each column
+    // The app uses shadcn Select (Radix UI) which renders as button[role="combobox"]
+    const selectTriggers = page.locator('button[role="combobox"]')
+    const selectCount = await selectTriggers.count()
     expect(selectCount).toBeGreaterThan(0)
   })
 
@@ -85,13 +117,19 @@ test.describe('CSV Import E2E', () => {
     // Wait for mapping UI
     await page.waitForSelector('text="Map Fields"')
 
-    // Try to change a mapping
-    const firstSelect = page.locator('select').first()
-    await firstSelect.selectOption('item')
+    // Try to change a mapping using shadcn Select (Radix UI)
+    // Click the first combobox trigger to open the dropdown
+    const firstTrigger = page.locator('button[role="combobox"]').first()
+    await firstTrigger.click()
 
-    // Verify it was changed
-    const selectedValue = await firstSelect.inputValue()
-    expect(selectedValue).toBe('item')
+    // Select the "Item/Product" option from the listbox
+    await page
+      .locator('[role="option"]')
+      .filter({ hasText: 'Item/Product' })
+      .click()
+
+    // Verify it was changed - the trigger should now show "Item/Product"
+    await expect(firstTrigger).toHaveText(/Item\/Product/)
   })
 
   test('should validate required fields before import', async ({ page }) => {
@@ -102,11 +140,15 @@ test.describe('CSV Import E2E', () => {
     // Wait for mapping UI
     await page.waitForSelector('text="Map Fields"')
 
-    // Try to map all fields to null (skip all)
-    const selects = page.locator('select')
-    const selectCount = await selects.count()
+    // Try to map all fields to "Skip this column" using shadcn Select
+    const selectTriggers = page.locator('button[role="combobox"]')
+    const selectCount = await selectTriggers.count()
     for (let i = 0; i < selectCount; i++) {
-      await selects.nth(i).selectOption('')
+      await selectTriggers.nth(i).click()
+      await page
+        .locator('[role="option"]')
+        .filter({ hasText: 'Skip this column' })
+        .click()
     }
 
     // Click confirm
@@ -114,7 +156,7 @@ test.describe('CSV Import E2E', () => {
 
     // Should show error about missing required field
     await expect(
-      page.locator('text=/Missing required field|item must be mapped/i'),
+      page.locator('text=/Required field.*must be mapped/i'),
     ).toBeVisible({ timeout: 5000 })
   })
 
@@ -134,7 +176,7 @@ test.describe('CSV Import E2E', () => {
 
     // Verify success message
     await expect(
-      page.locator('text="rows imported successfully"'),
+      page.locator('text=/rows imported successfully/'),
     ).toBeVisible()
   })
 
@@ -161,7 +203,7 @@ invalid-date,Widget A,10,99.99
       await page.waitForSelector('text="Import Complete"', { timeout: 10000 })
 
       // Should show import results with some errors
-      await expect(page.locator('text="failed to import"')).toBeVisible({
+      await expect(page.locator('text=/row.*failed to import/i')).toBeVisible({
         timeout: 5000,
       })
     } finally {

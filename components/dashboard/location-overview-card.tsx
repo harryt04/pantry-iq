@@ -36,10 +36,7 @@ const typeIcon = {
   food_truck: Utensils,
 }
 
-export function LocationOverviewCard({
-  locations,
-  isLoading,
-}: LocationOverviewCardProps) {
+export function LocationOverviewCard({ locations }: LocationOverviewCardProps) {
   if (locations.length === 0) {
     return (
       <Card>

@@ -51,9 +51,6 @@ export function FieldMappingUI({
   onCancel,
 }: FieldMappingUIProps) {
   const [mapping, setMapping] = useState<FieldMapping>({})
-  const [suggestedMapping, setSuggestedMapping] = useState<FieldMapping | null>(
-    null,
-  )
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isConfirming, setIsConfirming] = useState(false)
@@ -84,7 +81,6 @@ export function FieldMappingUI({
         }
 
         if (data.suggestedMapping) {
-          setSuggestedMapping(data.suggestedMapping)
           setMapping(data.suggestedMapping)
         }
       } catch (err) {
@@ -253,9 +249,12 @@ export function FieldMappingUI({
                     {header}
                   </Label>
                   <Select
-                    value={mapping[header] || ''}
+                    value={mapping[header] || 'skip'}
                     onValueChange={(value) =>
-                      handleMappingChange(header, value === '' ? null : value)
+                      handleMappingChange(
+                        header,
+                        value === 'skip' ? null : value,
+                      )
                     }
                   >
                     <SelectTrigger id={`field-${header}`}>
@@ -265,7 +264,7 @@ export function FieldMappingUI({
                       {STANDARD_FIELD_OPTIONS.map((opt) => (
                         <SelectItem
                           key={opt.value || 'skip'}
-                          value={opt.value || ''}
+                          value={opt.value || 'skip'}
                         >
                           {opt.label}
                         </SelectItem>
@@ -295,7 +294,7 @@ export function FieldMappingUI({
                               key={header}
                               className="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-300"
                             >
-                              {mapping[header] || header}
+                              {header}
                             </th>
                           ))}
                       </tr>

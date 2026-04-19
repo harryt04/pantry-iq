@@ -3,8 +3,6 @@ import { getPostHogClient } from '@/lib/posthog-server'
 import { ApiError, logErrorSafely } from '@/lib/api-error'
 
 export async function POST(request: NextRequest) {
-  const posthog = getPostHogClient()
-
   try {
     let body
     try {
@@ -25,24 +23,29 @@ export async function POST(request: NextRequest) {
       return ApiError.badRequest('Invalid email format', 'INVALID_EMAIL')
     }
 
-    // Identify user on server side
-    posthog.identify({
-      distinctId: email,
-      properties: {
-        email,
-      },
-    })
+    // Identify user and capture event on server side (if PostHog is configured)
+    const posthog = getPostHogClient()
+    if (posthog) {
+      posthog.identify({
+        distinctId: email,
+        properties: {
+          email,
+        },
+      })
+
+      posthog.capture({
+        distinctId: email,
+        event: 'launch-signup',
+        properties: {
+          email,
+          source: 'api',
+        },
+      })
+      // Do NOT call shutdownPostHog() here — singleton is shared across requests
+      // PostHog client flushes automatically via flushAt: 1 / flushInterval: 0 config
+    }
 
     // Forward to the external API
-    posthog.capture({
-      distinctId: email,
-      event: 'launch-signup',
-      properties: {
-        email,
-        source: 'api',
-      },
-    })
-    await posthog.shutdown()
     await fetch('https://harryt.dev/api/user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

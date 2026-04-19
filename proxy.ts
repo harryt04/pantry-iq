@@ -49,7 +49,7 @@ export async function proxy(request: NextRequest) {
     }
 
     return NextResponse.next()
-  } catch (error) {
+  } catch {
     // On error, allow the request to proceed
     // but protect app routes by default
     if (

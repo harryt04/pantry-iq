@@ -13,6 +13,7 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+    "types": ["vitest/globals", "@testing-library/jest-dom", "node"],
     "plugins": [
       {
         "name": "next"
@@ -32,5 +33,9 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "scripts/**/*.ts"],
+  "ts-node": {
+    "esm": true,
+    "experimentalEsm": true
+  }
 }

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "next dev",
@@ -11,14 +11,18 @@
     "start": "next start",
     "prettify": "prettier --write .",
     "lint": "eslint",
+    "fixLint": "prettier --write . && eslint --fix .",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest --run",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "ciTests": "prettier --check . && npm run lint && tsc --noEmit && npm run build && npm run test:unit",
     "generate:test-csv": "ts-node scripts/generate-test-csv.ts",
+    "generate:test-csv-faker": "ts-node scripts/generate-test-csv-faker.ts",
     "docker:build": "docker build -t pantryiq:latest ."
   },
   "dependencies": {
@@ -26,7 +30,6 @@
     "@ai-sdk/google": "^3.0.61",
     "@ai-sdk/openai": "^3.0.52",
     "@radix-ui/react-label": "^2.1.8",
-    "@rocicorp/zero": "^1.1.1",
     "ai": "^6.0.158",
     "better-auth": "^1.6.2",
     "class-variance-authority": "^0.7.1",
@@ -47,13 +50,16 @@
     "tailwind-merge": "^3.4.1"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.4.0",
     "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
-    "@types/node": "^20",
+    "@types/node": "^20.19.39",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^4.1.4",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.2.3",

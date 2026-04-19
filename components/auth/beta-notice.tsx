@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,12 +13,7 @@ import {
 import { AlertCircle } from 'lucide-react'
 
 export function BetaNotice() {
-  const [isOpen, setIsOpen] = useState(false)
-
-  useEffect(() => {
-    // Show dialog on mount
-    setIsOpen(true)
-  }, [])
+  const [isOpen, setIsOpen] = useState(true)
 
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>

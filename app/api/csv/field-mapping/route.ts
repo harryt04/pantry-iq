@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { parseCSV } from '@/lib/csv/parser'
+import { readCSVFile, deleteCSVFile } from '@/lib/csv/storage'
 import {
   suggestMappings,
   validateMapping,
@@ -10,42 +11,6 @@ import { db } from '@/db'
 import { csvUploads } from '@/db/schema/csv-uploads'
 import { transactions } from '@/db/schema/transactions'
 import { eq } from 'drizzle-orm'
-
-/**
- * Read CSV file - only evaluated at runtime
- * Uses indirect approach to prevent Turbopack static analysis
- */
-async function readCSVFile(uploadId: string): Promise<Buffer> {
-  // Use indirect path resolution to hide from Turbopack
-  const fsModule = 'fs' + '/promises'
-  const pathModule = 'path'
-  const { readFile } = await import(fsModule)
-  const { join: joinPaths } = await import(pathModule)
-  const uploadDir = process.env.CSV_UPLOAD_PATH || '/tmp/csv-uploads'
-  // Use a helper function to obscure the join call
-  const filePath = [uploadDir, uploadId].reduce((prev, curr) =>
-    joinPaths(/*turbopackIgnore: true*/ prev, curr),
-  )
-  return readFile(filePath)
-}
-
-/**
- * Delete CSV file - only evaluated at runtime
- * Uses indirect approach to prevent Turbopack static analysis
- */
-async function deleteCSVFile(uploadId: string): Promise<void> {
-  // Use indirect path resolution to hide from Turbopack
-  const fsModule = 'fs' + '/promises'
-  const pathModule = 'path'
-  const { unlink } = await import(fsModule)
-  const { join: joinPaths } = await import(pathModule)
-  const uploadDir = process.env.CSV_UPLOAD_PATH || '/tmp/csv-uploads'
-  // Use a helper function to obscure the join call
-  const filePath = [uploadDir, uploadId].reduce((prev, curr) =>
-    joinPaths(/*turbopackIgnore: true*/ prev, curr),
-  )
-  await unlink(filePath)
-}
 
 interface FieldMappingRequest {
   uploadId: string
@@ -135,7 +100,18 @@ export async function POST(
       interface FieldHeaders {
         headers?: string[]
       }
-      const mappingData = (upload.fieldMapping as FieldHeaders) || {}
+      let mappingData: FieldHeaders = {}
+      if (upload.fieldMapping) {
+        try {
+          mappingData = JSON.parse(
+            typeof upload.fieldMapping === 'string'
+              ? upload.fieldMapping
+              : JSON.stringify(upload.fieldMapping),
+          )
+        } catch {
+          console.error('Failed to parse fieldMapping from upload record')
+        }
+      }
       const suggestedMapping = await suggestMappings(
         mappingData.headers || [],
         sampleData,
@@ -248,7 +224,12 @@ export async function POST(
     }
 
     // Update status to complete or error
-    const finalStatus = errors.length === 0 ? 'complete' : 'complete'
+    const finalStatus =
+      errors.length === 0
+        ? 'complete'
+        : successCount > 0
+          ? 'complete' // Partial success — some rows imported
+          : 'error' // Total failure — zero rows imported
     const errorDetails = errors.length > 0 ? JSON.stringify(errors) : null
 
     await db

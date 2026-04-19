@@ -4,8 +4,8 @@
  * This is deliberately separated to avoid Turbopack NFT tracing issues
  */
 
-import fs from 'fs/promises'
-import path from 'path'
+import /*turbopackIgnore: true*/ fs from 'fs/promises'
+import /*turbopackIgnore: true*/ path from 'path'
 
 /**
  * Get the CSV upload directory path
@@ -13,7 +13,9 @@ import path from 'path'
  */
 function getUploadDir(): string {
   // Using a function to ensure this is evaluated at runtime, not build time
-  return process.env.CSV_UPLOAD_PATH || '/tmp/csv-uploads'
+  return (
+    process.env.CSV_UPLOAD_PATH || /*turbopackIgnore: true*/ '/tmp/csv-uploads'
+  )
 }
 
 /**
@@ -22,7 +24,9 @@ function getUploadDir(): string {
 export async function ensureUploadDir(): Promise<string> {
   const uploadDir = getUploadDir()
   try {
-    await fs.mkdir(uploadDir, { recursive: true })
+    await fs.mkdir(/*turbopackIgnore: true*/ uploadDir, {
+      recursive: true,
+    })
   } catch (error) {
     console.warn('Failed to create upload directory:', error)
   }
@@ -42,7 +46,7 @@ export async function getUploadFilePath(uploadId: string): Promise<string> {
  */
 export async function readCSVFile(uploadId: string): Promise<Buffer> {
   const filePath = await getUploadFilePath(uploadId)
-  return fs.readFile(filePath)
+  return fs.readFile(/*turbopackIgnore: true*/ filePath)
 }
 
 /**
@@ -53,7 +57,7 @@ export async function writeCSVFile(
   buffer: Buffer,
 ): Promise<void> {
   const filePath = await getUploadFilePath(uploadId)
-  await fs.writeFile(filePath, buffer)
+  await fs.writeFile(/*turbopackIgnore: true*/ filePath, buffer)
 }
 
 /**
@@ -61,5 +65,5 @@ export async function writeCSVFile(
  */
 export async function deleteCSVFile(uploadId: string): Promise<void> {
   const filePath = await getUploadFilePath(uploadId)
-  await fs.unlink(filePath)
+  await fs.unlink(/*turbopackIgnore: true*/ filePath)
 }

@@ -77,7 +77,6 @@ function StatusBadge({ status }: { status: keyof typeof statusBadgeConfig }) {
 export function ImportStatusCard({
   csvUploads,
   posConnections,
-  isLoading,
 }: ImportStatusCardProps) {
   return (
     <Card>

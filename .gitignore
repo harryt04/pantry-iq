@@ -45,4 +45,5 @@ next-env.d.ts
 
 # database
 *.db
-
+.agents/spec/
+.agents/specs/
