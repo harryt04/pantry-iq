@@ -30,7 +30,6 @@
     "@ai-sdk/google": "^3.0.61",
     "@ai-sdk/openai": "^3.0.52",
     "@radix-ui/react-label": "^2.1.8",
-    "@rocicorp/zero": "^1.1.1",
     "ai": "^6.0.158",
     "better-auth": "^1.6.2",
     "class-variance-authority": "^0.7.1",

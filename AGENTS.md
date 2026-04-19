@@ -4,7 +4,6 @@ Full-stack Next.js monolith: marketing (`/`), auth (`/signup`, `/login`), app (`
 
 ## Detailed References
 
-- **Zero sync:** `.agents/ZERO.md`
 - **Testing:** `.agents/TESTING.md`
 - **Error handling:** `.agents/ERROR_HANDLING.md`
 - **PostHog analytics:** `.agents/POSTHOG.md`
@@ -14,7 +13,7 @@ Full-stack Next.js monolith: marketing (`/`), auth (`/signup`, `/login`), app (`
 
 ```bash
 npm install && cp .env.sample .env
-docker-compose up -d        # PostgreSQL:5432 + Zero:8001
+docker-compose up -d        # PostgreSQL:5432
 npm run db:migrate
 npm run dev                 # http://localhost:3000
 npm run build && npm run lint && npm run prettify
@@ -26,7 +25,7 @@ npm run db:studio           # http://localhost:5555
 ## Stack
 
 Next.js 16 (App Router, SSR) · React 19 · TypeScript 5 strict · Tailwind v4 · shadcn/ui
-PostgreSQL 18 · Drizzle ORM · Zero sync (Rocicorp) · Better Auth · Vercel AI SDK
+PostgreSQL 18 · Drizzle ORM · Better Auth · Vercel AI SDK
 Square POS · Google Places · OpenWeatherMap · PostHog
 
 ## Routes & API
@@ -49,7 +48,7 @@ app/          Next.js routes
 components/   React components
 db/schema/    Drizzle schema (edit here, then db:generate + db:migrate)
 db/migrations/ Auto-generated SQL
-lib/          auth.ts, auth-client.ts, api-error.ts, analytics-utils.ts, ai/, zero/, square/, csv/, places/, weather/
+lib/          auth.ts, auth-client.ts, api-error.ts, analytics-utils.ts, ai/, square/, csv/, places/, weather/
 providers/    posthogProvider.tsx
 tests/        unit/, e2e/, fixtures/
 scripts/      generate-test-csv.ts
@@ -59,8 +58,6 @@ scripts/      generate-test-csv.ts
 
 ```bash
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/pantryiq
-ZERO_UPSTREAM_DB=postgres://postgres:postgres@postgres:5432/pantryiq
-NEXT_PUBLIC_ZERO_URL=http://localhost:8001
 BETTER_AUTH_SECRET=<openssl rand -base64 32>  # min 32 chars, never change after deploy
 BETTER_AUTH_URL=http://localhost:3000
 NEXT_PUBLIC_BETTER_AUTH_URL=http://localhost:3000
