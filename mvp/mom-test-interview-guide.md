@@ -1,5 +1,7 @@
 # PantryIQ – Mom Test Interview Guide
 
+[[_TOC_]]
+
 **Owner:** CPO  
 **Purpose:** Deep discovery conversation with qualified prospects. Validates core product hypotheses, surfaces real pain, and determines willingness to pay — including under MVP constraints.  
 **Time:** 30–45 minutes  
@@ -376,9 +378,3 @@ Update this after each interview. Mark each hypothesis as: **Confirmed / Challen
 | H10 | Single-location MVP focus is acceptable; multi-location is not day-one blocker | | |
 
 ---
-
-## Document History
-
-| Version | Date | Notes |
-|---|---|---|
-| v1 | May 2026 | Initial interview guide, companion to customer-screener.md |
