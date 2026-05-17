@@ -345,36 +345,16 @@ Note their response in your interview log.
 
 After each interview, record the following before moving on:
 
-- [ ] Operator type (use two-to-five word description)
-- [ ] POS system used
-- [ ] Pain level: **specific story with dollar amount** / vague awareness / no awareness
-- [ ] CSV familiarity: exports own data / knows it exists but delegates / unaware
-- [ ] CSV dealbreaker: yes / no / conditional
-- [ ] Early-adopter willingness: yes / no / conditional
-- [ ] OAuth providers: need (list) / want (list)
-- [ ] Hypotheses confirmed: (list H# values)
-- [ ] Hypotheses challenged: (list H# values)
-- [ ] Most memorable quote from this interview:
-- [ ] Any design insight or product requirement surfaced:
-
----
-
-## Hypothesis Validation Tracker
-
-Update this after each interview. Mark each hypothesis as: **Confirmed / Challenged / Insufficient data**
-
-| # | Hypothesis | Status | Notes |
-|---|---|---|---|
-| H1 | Owners know they have a spoilage problem | | |
-| H2a | CSV upload is not a dealbreaker | | |
-| H2b | Specific OAuth providers determine subscription willingness | | |
-| H3 | Dollar-first framing resonates over operational metrics | | |
-| H4 | Owners trust AI if they can see evidence and reasoning | | |
-| H5 | 7 days of data is sufficient to feel value on first use | | |
-| H6 | Owners want to remain decision-maker (AI as thought partner) | | |
-| H7 | Chat interface is intuitive for non-technical operators | | |
-| H8 | Non-owner roles can be champions even when not the buyer | | |
-| H9 | Early-adopter grandfathered price is sufficient to commit pre-OAuth | | |
-| H10 | Single-location MVP focus is acceptable; multi-location is not day-one blocker | | |
+1. Operator type (use two-to-five word description)
+1. POS system used
+1. Pain level: **specific story with dollar amount** / vague awareness / no awareness
+1. CSV familiarity: exports own data / knows it exists but delegates / unaware
+1. CSV dealbreaker: yes / no /  bconditional
+1. Early-adopter willingness: yes / no / conditional
+1. OAuth providers: need (list) / want (list)
+1. Hypotheses confirmed: (list H# values)
+1. Hypotheses challenged: (list H# values)
+1. Most memorable quote from this interview:
+1. Any design insight or product requirement surfaced:
 
 ---
