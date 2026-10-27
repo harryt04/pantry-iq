@@ -7,7 +7,7 @@ authoritative for every technology choice.
 
 ## Prerequisites
 
-- **Node.js** current LTS (v22+)
+- **Node.js 24** (see `.nvmrc`)
 - **pnpm** via Corepack — run `corepack enable` once, then `corepack use
   pnpm@9.15.4` (or let the `packageManager` field in `package.json` pin it
   automatically)

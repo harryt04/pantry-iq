@@ -47,7 +47,7 @@ Three further constraints shaped it:
 | Layer | Choice | One-line reason |
 |---|---|---|
 | Language | **TypeScript**, strict | The UI is already committed to React; a second language splits the type system |
-| Runtime | **Node**, current LTS | Boring, well-understood, matches the framework |
+| Runtime | **Node.js 24** | Boring, well-understood, matches the framework |
 | Framework | **Next.js**, App Router | Most screens render precomputed numbers — server components fit exactly |
 | UI | **React + Tailwind v4 + shadcn/ui on Radix** | Already decided in `brand/ui-implementation.md` §1 |
 | Database | **PostgreSQL** — and only PostgreSQL | It is the entire data layer: relational, JSONB, time-series-shaped, geospatial later |
